@@ -2,6 +2,7 @@
 	import flash.events.*;
 	import flash.media.*;
 	import flash.display.*;
+	import flash.errors.*;
 	
 	import flash.net.URLRequest;
 	//JS Interface
@@ -67,31 +68,55 @@
 		public var _playlist:XML = new XML();
 		
 		
-		private var _melody:Object;
+		private var _melody:Object = {
+			title:'',
+			artist:'',
+			album:'',
+			link:'',
+			year:'',
+			track:'',
+			comment:''
+		};
 		private var _streamPlay:SoundLoaderContext = new SoundLoaderContext(8000, true);
 		private var _trans:SoundTransform = new SoundTransform(_status.volume, 0);
 		
 		public var _showtimer;
 		public var _progressBar;
 		
-		public function actionPlay(){
-			//已经开始播放
-			if(_status.isPlaying == true){
+		public function actionPlay(melody = null){
+			var same = true;
+
+			if(melody) {
+				melody = melody is String ? {link:melody} : melody;
+				same = melody.link == _melody.link ? true : false;
+				_melody = same == true ? _melody : melody;
+			}
+			
+			
+			
+			//已经开始播放且为同一首歌
+			if(_status.isPlaying == true && same == true){
 				return false;
 			}
-			//首次点击
+			
+			//要更改播放曲目，首先停止当前音乐，
+			if(same == false) {
+				actionStop();
+			}
+			
+			//首次点击,重新初始化Sound对象
 			if (_status.firstClick == false) {
+				_sound = new Sound();
 				_req = new URLRequest(_melody.link);
 				_sound.load(_req,_streamPlay);
 				_status.firstClick = true;
 			}
-			//未读取完
-			if (_status.loadComplete == false) {
-				//监控读取过程
-				_sound.addEventListener(ProgressEvent.PROGRESS, this.onLoadProgress);
-				//增加读取完毕事件
-				_sound.addEventListener(Event.COMPLETE, this.onSoundLoaded);
-			}
+			
+			//监控读取过程
+			_sound.addEventListener(ProgressEvent.PROGRESS, this.onLoadProgress);
+			
+			//增加读取完毕事件
+			_sound.addEventListener(Event.COMPLETE, this.onSoundLoaded);
 			
 			//播放实时监控
 			addEventListener(Event.ENTER_FRAME, this.onEnterFrame);
@@ -102,22 +127,20 @@
 			//音量
 			_channel.soundTransform = _trans;
 			
-
-			
 			//初始化暂停位置
 			_status.pausePosition = 0;
 			_status.isPlaying = true;
 			
 			//增加完成监听
 			_channel.addEventListener(Event.SOUND_COMPLETE, this.onPlaybackComplete);
-			
+
 			return _status;
 
 		}
 		
 		public function actionPause(){
 			if (_status.pausePosition == 0 && _status.isPlaying == true) {
-				actionStop(_channel.position);
+				this.actionStop(_channel.position);
 			}
 			else if (_status.pausePosition > 0 && _status.isPlaying == false) {
 				this.actionPlay();
@@ -137,6 +160,36 @@
 				//记录停止位置
 				_status.pausePosition = position;
 				_status.isPlaying = false;
+				
+				//完全停止
+				if(position == 0){
+					
+					//在读取过程中中止，需要用close关闭sound
+					if(_status.loadComplete == false) {
+						removeEventListener(ProgressEvent.PROGRESS, this.onLoadProgress);
+						_sound.close();
+					}
+					
+					
+					//取消监听
+					removeEventListener(Event.SOUND_COMPLETE, this.onPlaybackComplete);
+					removeEventListener(Event.ENTER_FRAME, this.onEnterFrame);
+					removeEventListener(Event.COMPLETE, this.onSoundLoaded);
+					
+					
+					//恢复状态
+					_status.firstClick = false;
+					_status.played = 0;
+					
+					
+					//重置进度条
+					this.removeChild(_progressBar.loadbar);
+					this.removeChild(_progressBar.playbar);
+					
+					
+					//时间显示
+					showTimer.text = '';
+				}
 			}
 			else{
 				trace("Nothing to stop");
@@ -147,6 +200,7 @@
 		
 		private function onPlay(event:MouseEvent):void {
 			this.actionPlay();
+			
 		}
 		
 		private function onPause(event:MouseEvent):void {
@@ -154,19 +208,23 @@
 		}
 		
 		private function onStop(event:MouseEvent):void {
-			this.actionStop(0);
-			//FIXME 无法重置进度条
-			//this.addChild(_progressBar.clearProgress());
+			this.actionStop();
 		}
-		
+		private function onNext(event:MouseEvent):void {
+			this.actionPlay("http://mediaplayer.yahoo.com/example1.mp3");
+		}
+		private function onPrev(event:MouseEvent):void {
+			this.actionPlay("http://mediaplayer.yahoo.com/example2.mp3");
+		}
 		
 		private function onEnterFrame(event:Event):void {
 			
 			//开始计时器
 			_showtimer.startTimer(_channel.position,_status.length);
+			
 			//显示计数
 			showTimer.text = _showtimer.timeStatus.played;
-			
+			_status.played = _channel.position;
 			
 			
 			//当前播放百分比
@@ -177,8 +235,7 @@
 			_progressBar.playProgress(_progressBar.playbar,_UI.playedBar, pesent);
 			this.addChild(_progressBar.playbar);
 			
-			//游标
-			//_progressBar.playPointer(pesent);
+			ExternalInterface.call("AvplayerEnterFrame",_status.played);
 		}
 		
 		
@@ -203,8 +260,7 @@
 		}
 		
 		private function onPlaybackComplete(event:Event) {
-			_status.isPlaying = false;
-			_status.pausePosition = 0;
+			this.actionStop();
 		}
 		
 		private function onDropPointer(pesent) {
@@ -226,23 +282,25 @@
 			showTimer.mouseEnabled = false;
 			//进度条初始化
 			this.addChild(_progressBar.initProgress());
-
 			
-			//_melody = {link:"test.mp3"}
+			//http://comicer.hzcnc.com/music/yjj/tenkonagala1001.mp3
+			_melody = {link:"http://mediaplayer.yahoo.com/example1.mp3"}
 			
-			_melody = {link:"http://comicer.hzcnc.com/music/yjj/tenkonagala1001.mp3"}
+			
 			buttPlay.addEventListener(MouseEvent.CLICK,onPlay);			
 			buttPause.addEventListener(MouseEvent.CLICK,onPause);
 			buttStop.addEventListener(MouseEvent.CLICK,onStop);
+			buttPrev.addEventListener(MouseEvent.CLICK,onPrev);
+			buttNext.addEventListener(MouseEvent.CLICK,onNext);
 			
-			ExternalInterface.addCallback("onPlay", actionPlay);
-			ExternalInterface.addCallback("onPause", actionPause);
-			ExternalInterface.addCallback("onStop", actionStop);
+			ExternalInterface.addCallback("StartPlay", actionPlay);
+			ExternalInterface.addCallback("Pause", actionPause);
+			ExternalInterface.addCallback("Stop", actionStop);
+			
 		}
 		
+
 		public function AvPlayer() {
-			var fileloader = new Fileloader();
-			
 			initPlayer();
 		}
 		

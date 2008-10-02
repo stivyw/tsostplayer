@@ -1,51 +1,52 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh_cn" lang="zh_cn">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=shift_jis" />
-<title>avplayer</title>
-<script language="javascript">AC_FL_RunContent = 0;</script>
-<script src="AC_RunActiveContent.js" language="javascript"></script>
-</head>
-<body bgcolor="#ffffff">
-<!--ﾓｰﾆｬﾖﾐﾊｹﾓﾃｵﾄ URL-->
-<!--ﾓｰﾆｬﾖﾐﾊｹﾓﾃｵﾄﾎﾄｱｾ-->
-<!--
-<p align="center"></p>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>test</title>
+		<script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
+	</head>
+
+	<body bgcolor="#ffffff">
+		<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,0,0" width="250" height="20" id="avplayer" align="middle">
+			<param name="allowScriptAccess" value="sameDomain" />
+			<param name="allowFullScreen" value="false" />
+			<param name="movie" value="avplayer.swf" /><param name="quality" value="high" /><param name="bgcolor" value="#ffffff" />
+			<embed src="avplayer.swf" quality="high" bgcolor="#ffffff" width="250" height="20" name="avplayer" align="middle" allowScriptAccess="sameDomain" allowFullScreen="false" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" />
+		</object>
+		<br />
+		<a href="http://mediaplayer.yahoo.com/example1.mp3">First link</a><br/>
+		<a href="http://mediaplayer.yahoo.com/example2.mp3">Second link</a><br/>
+		<a href="http://mediaplayer.yahoo.com/example3.mp3">Third link</a>
+
+		<form name="form1" onsubmit="return false;">         
+			<input type="button" value="Pause" onclick="pause();" /><br />         
+			<input type="button" value="Stop" onclick="stop();" /><br /> 
+		</form>
+<div id="txt"></div>
+
+<script type="text/javascript">
+	<!--
+
+			$("a").click(function(){
+				play(this.href);
+				return false;
+			});
+
+			function play(melody){
+				document.getElementById("avplayer").StartPlay(melody);
+			}
+			function pause(){
+				document.getElementById("avplayer").Pause();
+			}
+			function stop(){
+				document.getElementById("avplayer").Stop();
+			}
+
+			function AvplayerEnterFrame(s){
+				document.getElementById('txt').innerHTML = s;
+			}
+
 -->
-<!-- saved from url=(0013)about:internet -->
-<script language="javascript">
-	if (AC_FL_RunContent == 0) {
-		alert("ｴﾋﾒｳﾐ靨ｪ AC_RunActiveContent.js");
-	} else {
-		AC_FL_RunContent(
-			'codebase', 'http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,0,0',
-			'width', '250',
-			'height', '20',
-			'src', 'avplayer',
-			'quality', 'high',
-			'pluginspage', 'http://www.macromedia.com/go/getflashplayer',
-			'align', 'middle',
-			'play', 'true',
-			'loop', 'true',
-			'scale', 'showall',
-			'wmode', 'window',
-			'devicefont', 'false',
-			'id', 'avplayer',
-			'bgcolor', '#ffffff',
-			'name', 'avplayer',
-			'menu', 'true',
-			'allowFullScreen', 'false',
-			'allowScriptAccess','sameDomain',
-			'movie', 'avplayer',
-			'salign', ''
-			); //end AC code
-	}
 </script>
-<noscript>
-	<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,0,0" width="250" height="20" id="avplayer" align="middle">
-	<param name="allowScriptAccess" value="sameDomain" />
-	<param name="allowFullScreen" value="false" />
-	<param name="movie" value="avplayer.swf" /><param name="quality" value="high" /><param name="bgcolor" value="#ffffff" />	<embed src="avplayer.swf" quality="high" bgcolor="#ffffff" width="250" height="20" name="avplayer" align="middle" allowScriptAccess="sameDomain" allowFullScreen="false" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" />
-	</object>
-</noscript>
+
 </body>
 </html>

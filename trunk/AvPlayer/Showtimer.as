@@ -29,7 +29,7 @@
 		}
 		
 		public function stopTimer(position) {
-			trace("Timer Stoped");
+			//trace("Timer Stoped");
 			//position = 0时清零
 			if(position <= 0) {
 				this.timeStatus = {
