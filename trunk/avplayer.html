@@ -1,50 +1,218 @@
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh_cn" lang="zh_cn">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-cn" lang="zh-cn">
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-		<title>test</title>
+		<title>avPlayer</title>
 		<script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
+		<style type="text/css">
+			.lyric {
+				font-family: Tahoma, Helvetica, Arial, sans-serif;
+				font-size: 1.5em;
+				padding:3px;
+				-moz-border-radius: 0.5em;
+				cursor:pointer;
+				color: #339900;
+				text-decoration: none;
+				display:block;
+			}
+
+			.lyric:hover{
+				border: 2px solid #337799;
+				background: #ddf5f9;
+			}
+
+			.highlight {
+				color: #339900;
+				border: 2px solid #337799;
+				background: #ddf5f9;
+			}
+
+			.played {
+				color:#CCC;
+			}
+
+
+		</style>
+
 	</head>
 
-	<body bgcolor="#ffffff">
-		<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,0,0" width="250" height="20" id="avplayer" align="middle">
-			<param name="allowScriptAccess" value="sameDomain" />
-			<param name="allowFullScreen" value="false" />
-			<param name="movie" value="avplayer.swf" /><param name="quality" value="high" /><param name="bgcolor" value="#ffffff" />
-			<embed src="avplayer.swf" quality="high" bgcolor="#ffffff" width="250" height="20" name="avplayer" align="middle" allowScriptAccess="sameDomain" allowFullScreen="false" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" />
-		</object>
-		<br />
-		<a href="http://mediaplayer.yahoo.com/example1.mp3">First link</a><br/>
-		<a href="http://mediaplayer.yahoo.com/example2.mp3">Second link</a><br/>
-		<a href="http://mediaplayer.yahoo.com/example3.mp3">Third link</a>
-
-		<form name="form1" onsubmit="return false;">         
-			<input type="button" value="Pause" onclick="pause();" /><br />         
-			<input type="button" value="Stop" onclick="stop();" /><br /> 
-		</form>
-<div id="txt"></div>
+	<body>
+		<div> 
+			<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,0,0" width="250" height="20" id="avplayer">
+				<param name="allowScriptAccess" value="sameDomain" />
+				<param name="allowFullScreen" value="false" />
+				<param name="movie" value="avplayer.swf" /><param name="quality" value="high" /><param name="bgcolor" value="#ffffff" />
+				<!--[if IE]>
+				<embed src="avplayer.swf" quality="high" bgcolor="#ffffff" width="250" height="20" name="avplayer" align="middle" allowScriptAccess="sameDomain" allowFullScreen="false" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" />
+				<![endif]-->
+			</object>
+			<br />
+			<input type="button" value="Play" onclick="avPlay();" /><input type="button" value="Pause" onclick="avPause();" /><input type="button" value="Stop" onclick="avStop();" />
+			<br />
+		<ul>
+			<li><a href="http://mediaplayer.yahoo.com/example1.mp3">First link</a></li>
+			<li><a href="http://mediaplayer.yahoo.com/example2.mp3">Second link</a></li>
+			<li><a href="http://mediaplayer.yahoo.com/example3.mp3">Third link</a></li>
+		<ul>
+		</div>
+<pre id="lrc">
+[00:01.59]明日天気に．．．
+[00:05.87]作词：志倉千代丸 
+[00:08.67]作曲：志倉千代丸 
+[00:11.39]編曲：吉原かつみ 
+[00:13.64]コーラス：中澤 里実
+[00:15.67]演唱：Remi
+[00:17.14]
+[00:29.06]一緒にいたんだよね？（I feel your love）  
+[00:38.42]気持ちも一つだよね？（dream come true it forever） 
+[00:47.63]音もなくいつか
+[00:52.35]穏やかなページに 
+[00:56.54]聞き分けのない
+[00:58.77]ノイズが溢れ出す 
+[01:05.22]目の前に降り注ぐ
+[01:09.86]この雨は天気雨 
+[01:14.49]上がるように　おまじない 
+[01:19.10]願いは叶うのかな？ 
+[01:26.78]「サヨナラ」想い出の日
+[01:32.56]出逢いも、あの場所も 
+[01:37.32]離れて行くんだね　もっともっと 
+[01:45.17]最後のその言葉を　聞こえないフリして 
+[01:55.61]失って気付いた　あなたの声
+[02:04.12]大きくなるよ 
+[02:08.43]
+[02:31.47]例えば沈黙とか（I feel your love） 
+[02:40.60]それさえ気まずいよね（dream come true it forever） 
+[02:49.94]他の誰よりも
+[02:54.46]特別な存在 
+[02:58.80]その瞳には　誰を映しているの？ 
+[03:07.45]あても無く待ちわびる
+[03:12.14]果たされぬ約束が 
+[03:16.77]この胸を　揺らしてる 
+[03:21.31]いつかは叶うのかな？ 
+[03:29.10]天使がくれた季節
+[03:34.89]想い出の詰まった 
+[03:39.44]いつかまた笑顔になれるのかな 
+[03:47.53]記憶に手をふっても
+[03:53.32]離れてくれなくて 
+[03:57.94]全ての繋がりが　切れたままで
+[04:06.38]乱れているよ
+[04:10.61]
+</pre>
 
 <script type="text/javascript">
 	<!--
+	String.prototype.trim= function(){  
+		return this.replace(/(^\s*)|(\s*$)/g, "");  
+	}
 
-			$("a").click(function(){
-				play(this.href);
-				return false;
-			});
+function Player(){
+	return document.getElementById("avplayer");
+}
 
-			function play(melody){
-				document.getElementById("avplayer").StartPlay(melody);
-			}
-			function pause(){
-				document.getElementById("avplayer").Pause();
-			}
-			function stop(){
-				document.getElementById("avplayer").Stop();
-			}
+function avPlay(melody){
+	Player().avPlay(melody);
+}
+function avPause(){
+	Player().avPause();
+}
+function avStop(time){
+	time = time > 0 ? time : 0;
+	lineCount = 0;
+	$(".lyric").removeClass("highlight").removeClass("played");
+	Player().avStop(time);
+}
 
-			function AvplayerEnterFrame(s){
-				document.getElementById('txt').innerHTML = s;
-			}
 
+function AvplayerEnterFrame(s){
+	var added = false;
+	if(s < l[lineCount].time) {
+		if(added == false) {
+			var now = lineCount - 1 >= 0 ? lineCount - 1 : 0;
+			$("#lyric_" + l[now].time).addClass("highlight");
+			lineCount > 0 ? $("#lyric_" + l[now - 1].time).removeClass("highlight").addClass("played") : '';
+		}
+	}
+	else {
+		added = true;
+		lineCount++;
+	}
+}
+
+function parseTime(x) {
+	var l = x.split('.');
+	var t = 0;
+	try {
+		var j = l[0].split(':');
+		t += parseInt(j[j.length - 1], 10) * 1000;
+		if (j.length > 1) {
+			t += parseInt(j[j.length - 2], 10) * 60000;
+		}
+		if (j.length > 2) {
+			t += parseInt(j[j.length - 3], 10) * 3600000;
+		}
+		if (l.length > 1) {
+			if (l[1].length == 1) {
+				t += parseInt(l[1], 10) * 100;
+			} else if (l[1].length == 2) {
+				t += parseInt(l[1], 10) * 10;
+			} else if (l[1].length == 3) {
+				t += parseInt(l[1], 10) * 1;
+			}
+		}
+		return t;
+	} catch (e) {
+		return 0;
+	}
+}
+
+
+
+
+function parseLRC(str) {
+	str = str.match(/^\[([0-9:\.]+)\](.*)$/);
+	return {time:parseTime(str[1]),content:str[2]};
+}
+
+function getLyric(lrc){
+	var lyric = new Array();
+	lrc = lrc.split(/\n/g);
+	var j = 0;
+	for (var i = 0; i < lrc.length; i ++) {
+		lrc[i] = lrc[i].trim();
+		if(lrc[i]) {
+			lyric[j] = parseLRC(lrc[i]);
+			j++;
+		}
+	}
+	return lyric;
+}
+
+function printLyric(lyric) {
+	var res = '';
+	for(var i = 0;i < lyric.length;i++) {
+		res += '<span id="lyric_' + lyric[i].time + '" class="lyric" onclick="playThisLine(this);">' + lyric[i].content + "</span>\n";
+	}
+	return res;
+}
+
+function playThisLine(line){
+	var time = line.id.split('_');
+	time = time[1];
+	avStop(time);
+	avPlay();
+
+	$(".lyric:not(#" + line.id + ")").addClass("played");
+	$("#" + line.id +" ~ span").removeClass("played");
+}
+
+var l = getLyric($("#lrc").html());
+$("#lrc").replaceWith('<div id = "lrc"' + printLyric(l) + '</div>');
+var lineCount = 0;
+
+$("a").click(function(){
+	avPlay(this.href);
+	return false;
+});
 -->
 </script>
 
