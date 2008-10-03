@@ -151,7 +151,7 @@
 			return _status; 
 		}
 		
-		public function actionStop(position = 0){
+		public function actionStop(position:Number = 0):void{
 			if(_status.firstClick == true) {
 				//停止播放
 				_channel.stop();
@@ -194,7 +194,7 @@
 			else{
 				trace("Nothing to stop");
 			}
-			return _status;
+			//return _status;
 
 		}
 		
@@ -284,7 +284,7 @@
 			this.addChild(_progressBar.initProgress());
 			
 			//http://comicer.hzcnc.com/music/yjj/tenkonagala1001.mp3
-			_melody = {link:"http://mediaplayer.yahoo.com/example1.mp3"}
+			_melody = {link:"test.mp3"}
 			
 			
 			buttPlay.addEventListener(MouseEvent.CLICK,onPlay);			
@@ -293,9 +293,11 @@
 			buttPrev.addEventListener(MouseEvent.CLICK,onPrev);
 			buttNext.addEventListener(MouseEvent.CLICK,onNext);
 			
-			ExternalInterface.addCallback("StartPlay", actionPlay);
-			ExternalInterface.addCallback("Pause", actionPause);
-			ExternalInterface.addCallback("Stop", actionStop);
+			
+			ExternalInterface.addCallback("avStop", actionStop);
+			ExternalInterface.addCallback("avPlay", actionPlay);
+			ExternalInterface.addCallback("avPause", actionPause);
+			
 			
 		}
 		
