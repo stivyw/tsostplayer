@@ -198,6 +198,10 @@
 
 		}
 		
+		public function actionStatus(){
+			return _status;
+		}
+		
 		private function onPlay(event:MouseEvent):void {
 			this.actionPlay();
 			
@@ -284,7 +288,7 @@
 			this.addChild(_progressBar.initProgress());
 			
 			//http://comicer.hzcnc.com/music/yjj/tenkonagala1001.mp3
-			_melody = {link:"test.mp3"}
+			_melody = {link:"http://www.fileden.com/files/2008/10/8/2134095/test.mp3"}
 			
 			
 			buttPlay.addEventListener(MouseEvent.CLICK,onPlay);			
@@ -297,7 +301,7 @@
 			ExternalInterface.addCallback("avStop", actionStop);
 			ExternalInterface.addCallback("avPlay", actionPlay);
 			ExternalInterface.addCallback("avPause", actionPause);
-			
+			ExternalInterface.addCallback("avStatus", actionStatus);
 			
 		}
 		
