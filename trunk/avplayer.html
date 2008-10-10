@@ -4,6 +4,7 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 		<title>avPlayer</title>
 		<script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
+		<script type="text/javascript" src="http://t.wits.sg/misc/jQueryProgressBar/js/jquery.progressbar.min.js"></script>
 		<style type="text/css">
 			.lyric {
 				font-family: Tahoma, Helvetica, Arial, sans-serif;
@@ -30,8 +31,11 @@
 			.played {
 				color:#CCC;
 			}
-
-
+			
+			#lrc {
+				height:300px;
+				overflow-y:scroll;
+			}
 		</style>
 
 	</head>
@@ -41,18 +45,22 @@
 			<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,0,0" width="250" height="20" id="avplayer">
 				<param name="allowScriptAccess" value="sameDomain" />
 				<param name="allowFullScreen" value="false" />
-				<param name="movie" value="avplayer.swf" /><param name="quality" value="high" /><param name="bgcolor" value="#ffffff" />
+				<param name="movie" value="avplayer.swf" />
+				<param name="quality" value="high" />
+				<param name="bgcolor" value="#ffffff" />
 				<!--[if IE]>
 				<embed src="avplayer.swf" quality="high" bgcolor="#ffffff" width="250" height="20" name="avplayer" align="middle" allowScriptAccess="sameDomain" allowFullScreen="false" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" />
 				<![endif]-->
 			</object>
 			<br />
-			<input type="button" value="Play" onclick="avPlay();" /><input type="button" value="Pause" onclick="avPause();" /><input type="button" value="Stop" onclick="avStop();" />
+			<input type="button" value="Play" onclick="avPlay();" /><input type="button" value="Pause" onclick="avPause();" /><input type="button" value="Stop" onclick="avStop();" /><input type="button" value="Status" onclick="getStatus();" />
 			<br />
 		<ul>
 			<li><a href="http://mediaplayer.yahoo.com/example1.mp3">First link</a></li>
 			<li><a href="http://mediaplayer.yahoo.com/example2.mp3">Second link</a></li>
 			<li><a href="http://mediaplayer.yahoo.com/example3.mp3">Third link</a></li>
+			<li><a href="http://www.fileden.com/files/2008/10/8/2134095/test.mp3">FileDen</a></li>
+			<li><a href="http://xhh4bw.bay.livefilestore.com/y1pfLzvedwKOUPrFqdfaRgjkKUfrJf_UDiWC_n3_1I1L0aTpLX9rEUIb9ffpSzT2AvQ1vAFY9ZDW-s/%E5%8D%83%E7%A7%8B%E6%9C%88%E5%88%AB%E8%A5%BF%E6%A5%9A%E5%B0%86.mp3">SkyDrive</a></li>
 		<ul>
 		</div>
 <pre id="lrc">
@@ -98,7 +106,7 @@
 [04:06.38]乱れているよ
 [04:10.61]
 </pre>
-
+<span id="progressBar"></span>
 <script type="text/javascript">
 	<!--
 	String.prototype.trim= function(){  
@@ -121,9 +129,33 @@ function avStop(time){
 	$(".lyric").removeClass("highlight").removeClass("played");
 	Player().avStop(time);
 }
+function avStatus(){
+	return Player().avStatus();
+}
 
+function getStatus() {
+	var s = avStatus();
+	var msg = '';
+	for(var i in s) {
+		msg += i + ':' + s[i] + "\n";
+	}
+	alert(msg);
+}
 
+var percent = 0;
+var lineCount = 0;
 function AvplayerEnterFrame(s){
+
+	//Js progressBar
+	var status = avStatus();
+	//$('#progressBar').html(s + ' ' + status.length);
+	var percent_now = Math.ceil(s/status.length * 100);
+	if(percent_now != percent) {
+		percent = percent_now;
+		$('#progressBar').progressBar(percent);
+	}
+	
+	//Show lyric
 	var added = false;
 	if(s < l[lineCount].time) {
 		if(added == false) {
@@ -207,12 +239,15 @@ function playThisLine(line){
 
 var l = getLyric($("#lrc").html());
 $("#lrc").replaceWith('<div id = "lrc"' + printLyric(l) + '</div>');
-var lineCount = 0;
+
 
 $("a").click(function(){
 	avPlay(this.href);
 	return false;
 });
+
+$('#progressBar').progressBar(0);
+
 -->
 </script>
 
