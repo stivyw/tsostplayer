@@ -144,15 +144,16 @@ function getStatus() {
 
 var percent = 0;
 var lineCount = 0;
+var pgImageBg = 'http://t.wits.sg/misc/jQueryProgressBar/images/progressbar.gif';
+var pgImage = 'http://t.wits.sg/misc/jQueryProgressBar/images/progressbg_red.gif';
 function AvplayerEnterFrame(s){
 
 	//Js progressBar
 	var status = avStatus();
-	//$('#progressBar').html(s + ' ' + status.length);
 	var percent_now = Math.ceil(s/status.length * 100);
 	if(percent_now != percent) {
 		percent = percent_now;
-		$('#progressBar').progressBar(percent);
+		$('#progressBar').progressBar(percent,{barImage:pgImage,boxImage:pgImageBg} );
 	}
 	
 	//Show lyric
@@ -238,7 +239,7 @@ function playThisLine(line){
 }
 
 var l = getLyric($("#lrc").html());
-$("#lrc").replaceWith('<div id = "lrc"' + printLyric(l) + '</div>');
+$("#lrc").replaceWith('<div id = "lrc">' + printLyric(l) + '</div>');
 
 
 $("a").click(function(){
@@ -246,7 +247,7 @@ $("a").click(function(){
 	return false;
 });
 
-$('#progressBar').progressBar(0);
+//$('#progressBar').progressBar(0,{barImage:pgImage,boxImage:pgImageBg});
 
 -->
 </script>
