@@ -4,7 +4,6 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 		<title>avPlayer</title>
 		<script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
-		<script type="text/javascript" src="http://t.wits.sg/misc/jQueryProgressBar/js/jquery.progressbar.min.js"></script>
 		<style type="text/css">
 			.lyric {
 				font-family: Tahoma, Helvetica, Arial, sans-serif;
@@ -36,6 +35,20 @@
 				height:300px;
 				overflow-y:scroll;
 			}
+			
+			#bg1 {
+				width:688px;
+				height:10px;
+				/*border: 1px solid #B1D632;*/
+				background: url(http://farm4.static.flickr.com/3173/2963989770_929190de50_o.png) no-repeat;
+			}
+			#bg2 {
+				width:688px;
+				height:10px;
+				background: url(http://farm4.static.flickr.com/3181/2963148915_89bf61b239_o.png) no-repeat;
+				background-position:-688px 0%;
+			}
+
 		</style>
 
 	</head>
@@ -60,7 +73,7 @@
 			<li><a href="http://mediaplayer.yahoo.com/example2.mp3">Second link</a></li>
 			<li><a href="http://mediaplayer.yahoo.com/example3.mp3">Third link</a></li>
 			<li><a href="http://www.fileden.com/files/2008/10/8/2134095/test.mp3">FileDen</a></li>
-			<li><a href="http://xhh4bw.bay.livefilestore.com/y1pfLzvedwKOUPrFqdfaRgjkKUfrJf_UDiWC_n3_1I1L0aTpLX9rEUIb9ffpSzT2AvQ1vAFY9ZDW-s/%E5%8D%83%E7%A7%8B%E6%9C%88%E5%88%AB%E8%A5%BF%E6%A5%9A%E5%B0%86.mp3">SkyDrive</a></li>
+			<li class="playing"><a href="http://xhh4bw.bay.livefilestore.com/y1pfLzvedwKOUPrFqdfaRgjkKUfrJf_UDiWC_n3_1I1L0aTpLX9rEUIb9ffpSzT2AvQ1vAFY9ZDW-s/%E5%8D%83%E7%A7%8B%E6%9C%88%E5%88%AB%E8%A5%BF%E6%A5%9A%E5%B0%86.mp3">SkyDrive</a></li>
 		<ul>
 		</div>
 <pre id="lrc">
@@ -106,7 +119,8 @@
 [04:06.38]乱れているよ
 [04:10.61]
 </pre>
-<span id="progressBar"></span>
+<div id="bg1"><div id="bg2"></div></div>
+<div id="msg"></div>
 <script type="text/javascript">
 	<!--
 	String.prototype.trim= function(){  
@@ -148,13 +162,20 @@ var pgImageBg = 'http://t.wits.sg/misc/jQueryProgressBar/images/progressbar.gif'
 var pgImage = 'http://t.wits.sg/misc/jQueryProgressBar/images/progressbg_red.gif';
 function AvplayerEnterFrame(s){
 
-	//Js progressBar
 	var status = avStatus();
+	
+	progressBar(status.played/status.length);
+	//Js progressBar
+	//一秒一次
+	/*
+	
 	var percent_now = Math.ceil(s/status.length * 100);
 	if(percent_now != percent) {
 		percent = percent_now;
-		$('#progressBar').progressBar(percent,{barImage:pgImage,boxImage:pgImageBg} );
+		progressBar(percent);
+		//$('#progressBar').progressBar(percent,{barImage:pgImage,boxImage:pgImageBg} );
 	}
+	*/
 	
 	//Show lyric
 	var added = false;
@@ -238,6 +259,12 @@ function playThisLine(line){
 	$("#" + line.id +" ~ span").removeClass("played");
 }
 
+function progressBar(percent) {
+	var width = $("#bg2").width();
+	var position = '-' + width * (1 - percent) + 'px';
+	$("#bg2").css("background-position",position);
+}
+
 var l = getLyric($("#lrc").html());
 $("#lrc").replaceWith('<div id = "lrc">' + printLyric(l) + '</div>');
 
@@ -247,7 +274,10 @@ $("a").click(function(){
 	return false;
 });
 
-//$('#progressBar').progressBar(0,{barImage:pgImage,boxImage:pgImageBg});
+function debug(m){
+	$("#msg").html(m);
+}
+
 
 -->
 </script>
