@@ -1,0 +1,46 @@
+.avplayList {
+	padding-left:19px;
+	min-height:16px;
+}
+
+.avplayList_wait {
+	background:url(img/play.png) no-repeat left center;
+}
+
+.avplayList_now {
+	background:url(img/nowpl.gif) no-repeat left center;
+}
+
+.avplayList_pause {
+	background:url(img/pause.png) no-repeat left center;
+}
+
+.avplayLrcCase {
+	height:350px;
+	border:1px solid #CCC;
+	padding:10px;
+	overflow:scroll;
+	overflow-x:hidden;
+}
+
+
+.avplayLine {
+	margin:1px;
+	padding:2px;
+	min-height:10px;
+	font-family: Tahoma, Helvetica, Arial, sans-serif;
+	-moz-border-radius: 0.5em;
+	cursor:pointer;
+	color: #F0762B;
+	text-decoration: none;
+	display:block;
+}
+
+.avplayLine:hover, .avplayLine_hilight{
+	border: 1px solid #337799;
+	background: #ddf5f9;
+}
+
+.avplayLine_played {
+	color:#CCC;
+}

@@ -1,82 +1,24 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="zh-cn" lang="zh-cn">
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-		<title>avPlayer</title>
-		<script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
-		<style type="text/css">
-			.lyric {
-				font-family: Tahoma, Helvetica, Arial, sans-serif;
-				font-size: 1.5em;
-				padding:3px;
-				-moz-border-radius: 0.5em;
-				cursor:pointer;
-				color: #339900;
-				text-decoration: none;
-				display:block;
-			}
+<head>
+<title>Avplayer</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="Content-Language" content="zh-cn" />
+<meta http-equiv="author" content="AlloVince" />
 
-			.lyric:hover{
-				border: 2px solid #337799;
-				background: #ddf5f9;
-			}
+</head>
 
-			.highlight {
-				color: #339900;
-				border: 2px solid #337799;
-				background: #ddf5f9;
-			}
+<body>
 
-			.played {
-				color:#CCC;
-			}
-			
-			#lrc {
-				height:300px;
-				overflow-y:scroll;
-			}
-			
-			#bg1 {
-				width:688px;
-				height:10px;
-				/*border: 1px solid #B1D632;*/
-				background: url(http://farm4.static.flickr.com/3173/2963989770_929190de50_o.png) no-repeat;
-			}
-			#bg2 {
-				width:688px;
-				height:10px;
-				background: url(http://farm4.static.flickr.com/3181/2963148915_89bf61b239_o.png) no-repeat;
-				background-position:-688px 0%;
-			}
+<!-- #page start -->
+<div id="page">
 
-		</style>
+<h3><a rel="external" href="http://www.fileden.com/files/2008/10/8/2134095/test.mp3">Remi - 明日天気に．．．</a></h3>
 
-	</head>
 
-	<body>
-		<div> 
-			<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,0,0" width="250" height="20" id="avplayer">
-				<param name="allowScriptAccess" value="sameDomain" />
-				<param name="allowFullScreen" value="false" />
-				<param name="movie" value="avplayer.swf" />
-				<param name="quality" value="high" />
-				<param name="bgcolor" value="#ffffff" />
-				<!--[if IE]>
-				<embed src="avplayer.swf" quality="high" bgcolor="#ffffff" width="250" height="20" name="avplayer" align="middle" allowScriptAccess="sameDomain" allowFullScreen="false" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer" />
-				<![endif]-->
-			</object>
-			<br />
-			<input type="button" value="Play" onclick="avPlay();" /><input type="button" value="Pause" onclick="avPause();" /><input type="button" value="Stop" onclick="avStop();" /><input type="button" value="Status" onclick="getStatus();" />
-			<br />
-		<ul>
-			<li><a href="http://mediaplayer.yahoo.com/example1.mp3">First link</a></li>
-			<li><a href="http://mediaplayer.yahoo.com/example2.mp3">Second link</a></li>
-			<li><a href="http://mediaplayer.yahoo.com/example3.mp3">Third link</a></li>
-			<li><a href="http://www.fileden.com/files/2008/10/8/2134095/test.mp3">FileDen</a></li>
-			<li class="playing"><a href="http://xhh4bw.bay.livefilestore.com/y1pfLzvedwKOUPrFqdfaRgjkKUfrJf_UDiWC_n3_1I1L0aTpLX9rEUIb9ffpSzT2AvQ1vAFY9ZDW-s/%E5%8D%83%E7%A7%8B%E6%9C%88%E5%88%AB%E8%A5%BF%E6%A5%9A%E5%B0%86.mp3">SkyDrive</a></li>
-		<ul>
-		</div>
-<pre id="lrc">
+<pre class="lrc">
+[ti:明日天気に．．．]
+[ar:Remi]
 [00:01.59]明日天気に．．．
 [00:05.87]作词：志倉千代丸 
 [00:08.67]作曲：志倉千代丸 
@@ -119,168 +61,28 @@
 [04:06.38]乱れているよ
 [04:10.61]
 </pre>
-<div id="bg1"><div id="bg2"></div></div>
-<div id="msg"></div>
+
+	
+<!-- #page end -->
+</div>
+<div id="avplayer"></div>
+
+
+<script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
+<script type="text/javascript" src="avplayer.js"></script>
 <script type="text/javascript">
-	<!--
-	String.prototype.trim= function(){  
-		return this.replace(/(^\s*)|(\s*$)/g, "");  
-	}
+<!--
+avpInit('./');
+$(document).ready(function(){
+	$("a[href$='.mp3']").each(function(){
+		avpInitList($(this));
+	});
 
-function Player(){
-	return document.getElementById("avplayer");
-}
-
-function avPlay(melody){
-	Player().avPlay(melody);
-}
-function avPause(){
-	Player().avPause();
-}
-function avStop(time){
-	time = time > 0 ? time : 0;
-	lineCount = 0;
-	$(".lyric").removeClass("highlight").removeClass("played");
-	Player().avStop(time);
-}
-function avStatus(){
-	return Player().avStatus();
-}
-
-function getStatus() {
-	var s = avStatus();
-	var msg = '';
-	for(var i in s) {
-		msg += i + ':' + s[i] + "\n";
-	}
-	alert(msg);
-}
-
-var percent = 0;
-var lineCount = 0;
-var pgImageBg = 'http://t.wits.sg/misc/jQueryProgressBar/images/progressbar.gif';
-var pgImage = 'http://t.wits.sg/misc/jQueryProgressBar/images/progressbg_red.gif';
-function AvplayerEnterFrame(s){
-
-	var status = avStatus();
-	
-	progressBar(status.played/status.length);
-	//Js progressBar
-	//一秒一次
-	/*
-	
-	var percent_now = Math.ceil(s/status.length * 100);
-	if(percent_now != percent) {
-		percent = percent_now;
-		progressBar(percent);
-		//$('#progressBar').progressBar(percent,{barImage:pgImage,boxImage:pgImageBg} );
-	}
-	*/
-	
-	//Show lyric
-	var added = false;
-	if(s < l[lineCount].time) {
-		if(added == false) {
-			var now = lineCount - 1 >= 0 ? lineCount - 1 : 0;
-			$("#lyric_" + l[now].time).addClass("highlight");
-			lineCount > 0 ? $("#lyric_" + l[now - 1].time).removeClass("highlight").addClass("played") : '';
-		}
-	}
-	else {
-		added = true;
-		lineCount++;
-	}
-}
-
-function parseTime(x) {
-	var l = x.split('.');
-	var t = 0;
-	try {
-		var j = l[0].split(':');
-		t += parseInt(j[j.length - 1], 10) * 1000;
-		if (j.length > 1) {
-			t += parseInt(j[j.length - 2], 10) * 60000;
-		}
-		if (j.length > 2) {
-			t += parseInt(j[j.length - 3], 10) * 3600000;
-		}
-		if (l.length > 1) {
-			if (l[1].length == 1) {
-				t += parseInt(l[1], 10) * 100;
-			} else if (l[1].length == 2) {
-				t += parseInt(l[1], 10) * 10;
-			} else if (l[1].length == 3) {
-				t += parseInt(l[1], 10) * 1;
-			}
-		}
-		return t;
-	} catch (e) {
-		return 0;
-	}
-}
-
-
-
-
-function parseLRC(str) {
-	str = str.match(/^\[([0-9:\.]+)\](.*)$/);
-	return {time:parseTime(str[1]),content:str[2]};
-}
-
-function getLyric(lrc){
-	var lyric = new Array();
-	lrc = lrc.split(/\n/g);
-	var j = 0;
-	for (var i = 0; i < lrc.length; i ++) {
-		lrc[i] = lrc[i].trim();
-		if(lrc[i]) {
-			lyric[j] = parseLRC(lrc[i]);
-			j++;
-		}
-	}
-	return lyric;
-}
-
-function printLyric(lyric) {
-	var res = '';
-	for(var i = 0;i < lyric.length;i++) {
-		res += '<span id="lyric_' + lyric[i].time + '" class="lyric" onclick="playThisLine(this);">' + lyric[i].content + "</span>\n";
-	}
-	return res;
-}
-
-function playThisLine(line){
-	var time = line.id.split('_');
-	time = time[1];
-	avStop(time);
-	avPlay();
-
-	$(".lyric:not(#" + line.id + ")").addClass("played");
-	$("#" + line.id +" ~ span").removeClass("played");
-}
-
-function progressBar(percent) {
-	var width = $("#bg2").width();
-	var position = '-' + width * (1 - percent) + 'px';
-	$("#bg2").css("background-position",position);
-}
-
-var l = getLyric($("#lrc").html());
-$("#lrc").replaceWith('<div id = "lrc">' + printLyric(l) + '</div>');
-
-
-$("a").click(function(){
-	avPlay(this.href);
-	return false;
+	$("pre[class='lrc']").each(function(){
+		avpInitLrc($(this));
+	});
 });
-
-function debug(m){
-	$("#msg").html(m);
-}
-
-
 -->
 </script>
-
 </body>
 </html>
