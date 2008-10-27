@@ -15,6 +15,10 @@
 	background:url(img/pause.png) no-repeat left center;
 }
 
+.avplayList_error {
+	background:url(img/error.png) no-repeat left center;
+}
+
 .avplayLrcCase {
 	height:350px;
 	border:1px solid #CCC;
