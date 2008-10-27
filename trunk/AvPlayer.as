@@ -10,7 +10,6 @@
 	import flash.text.TextField;
 	import com.adobe.serialization.json.*;
 	import AvPlayer.*;
-
 	
 	public class AvPlayer extends MovieClip{
 		
@@ -83,6 +82,8 @@
 		public var _showtimer;
 		public var _progressBar;
 		
+		public var _error = false;
+		
 		public function actionPlay(melody = null){
 			var same = true;
 
@@ -91,8 +92,6 @@
 				same = melody.link == _melody.link ? true : false;
 				_melody = same == true ? _melody : melody;
 			}
-			
-			
 			
 			//已经开始播放且为同一首歌
 			if(_status.isPlaying == true && same == true){
@@ -108,35 +107,61 @@
 			if (_status.firstClick == false) {
 				_sound = new Sound();
 				_req = new URLRequest(_melody.link);
+				//Load error hander
+				_sound.addEventListener(IOErrorEvent.IO_ERROR, this.ioErrorHandler);
 				_sound.load(_req,_streamPlay);
-				_status.firstClick = true;
+			}
+			try{
+					_status.firstClick = true;
+
+					//监控读取过程
+					_sound.addEventListener(ProgressEvent.PROGRESS, this.onLoadProgress);
+					
+					//增加读取完毕事件
+					_sound.addEventListener(Event.COMPLETE, this.onSoundLoaded);
+					
+					//播放实时监控
+					addEventListener(Event.ENTER_FRAME, this.onEnterFrame);
+					
+					//开始播放
+					_channel = _sound.play(_status.pausePosition,1,_trans);
+					
+					//音量
+					_channel.soundTransform = _trans;
+					
+					//初始化暂停位置
+					_status.pausePosition = 0;
+					_status.isPlaying = true;
+					
+					//增加完成监听
+					_channel.addEventListener(Event.SOUND_COMPLETE, this.onPlayComplete);
+					
+			}
+			catch(e:Error){
+				
 			}
 			
-			//监控读取过程
-			_sound.addEventListener(ProgressEvent.PROGRESS, this.onLoadProgress);
-			
-			//增加读取完毕事件
-			_sound.addEventListener(Event.COMPLETE, this.onSoundLoaded);
-			
-			//播放实时监控
-			addEventListener(Event.ENTER_FRAME, this.onEnterFrame);
-			
-			//开始播放
-			_channel = _sound.play(_status.pausePosition,1,_trans);
-			
-			//音量
-			_channel.soundTransform = _trans;
-			
-			//初始化暂停位置
-			_status.pausePosition = 0;
-			_status.isPlaying = true;
-			
-			//增加完成监听
-			_channel.addEventListener(Event.SOUND_COMPLETE, this.onPlaybackComplete);
-
 			return _status;
 
 		}
+
+		
+		private function ioErrorHandler(e:IOErrorEvent)	{
+			resetStatus();
+			ExternalInterface.call("AvplayerIoError",e);
+			//ExternalInterface.call('console.log',"[%s]",e);
+		}
+		
+		public function resetStatus(){
+			_status.firstClick = false;
+			_status.isPlaying = false;
+			
+			removeEventListener(ProgressEvent.PROGRESS, this.onLoadProgress);
+			removeEventListener(Event.SOUND_COMPLETE, this.onPlayComplete);
+			removeEventListener(Event.ENTER_FRAME, this.onEnterFrame);
+			removeEventListener(Event.COMPLETE, this.onSoundLoaded);
+		}
+		
 		
 		public function actionPause(){
 			if (_status.pausePosition == 0 && _status.isPlaying == true) {
@@ -172,7 +197,7 @@
 					
 					
 					//取消监听
-					removeEventListener(Event.SOUND_COMPLETE, this.onPlaybackComplete);
+					removeEventListener(Event.SOUND_COMPLETE, this.onPlayComplete);
 					removeEventListener(Event.ENTER_FRAME, this.onEnterFrame);
 					removeEventListener(Event.COMPLETE, this.onSoundLoaded);
 					
@@ -194,8 +219,6 @@
 			else{
 				trace("Nothing to stop");
 			}
-			//return _status;
-
 		}
 		
 		public function actionStatus(){
@@ -263,8 +286,9 @@
 			this.addChild(_progressBar.loadbar);
 		}
 		
-		private function onPlaybackComplete(event:Event) {
+		private function onPlayComplete(event:Event) {
 			this.actionStop();
+			ExternalInterface.call("AvplayerPlayComplete");
 		}
 		
 		private function onDropPointer(pesent) {
@@ -289,6 +313,9 @@
 			
 			//http://comicer.hzcnc.com/music/yjj/tenkonagala1001.mp3
 			_melody = {link:"http://www.fileden.com/files/2008/10/8/2134095/test.mp3"}
+			//_melody = {link:"test.mp3"}
+			
+
 			
 			
 			buttPlay.addEventListener(MouseEvent.CLICK,onPlay);			

@@ -188,6 +188,9 @@ function AvplayerEnterFrame(s){
 	if(s < avLyric.lyric[avLine].time) {
 		if(added == false) {
 			var now = avLine - 1 >= 0 ? avLine - 1 : 0;
+			
+			//$('.avpLine_' + avLyric.lyric[now].time).addClass("avplayLine_hilight").highlightFade({speed:1000});
+			//$("#"+ avLyric.id).scrollTo($('.avpLine_' + avLyric.lyric[now].time),{offset:-150});
 			$('.avpLine_' + avLyric.lyric[now].time).addClass("avplayLine_hilight");
 			avLine > 0 ? $('.avpLine_' + avLyric.lyric[now - 1].time).removeClass("avplayLine_hilight").addClass("avplayLine_played") : '';
 		}
@@ -196,5 +199,23 @@ function AvplayerEnterFrame(s){
 		added = true;
 		avLine++;
 	}
+}
+
+function AvplayerIoError(error){
+	/*
+	var msg = '';
+	for(var i in error) {
+		msg += error[i];
+	}
+	alert(msg);
+	*/
+	$('.avplayList_now').removeClass("avplayList_now").addClass("avplayList_error");
+	$('.avplayLine_hilight').removeClass("avplayLine_hilight");
+}
+
+function AvplayerPlayComplete(){
+	$('.avplayList_now').removeClass("avplayList_now").addClass('avplayList_wait');
+	$('.avplayLine_hilight').removeClass("avplayLine_hilight");
+	$('.avplayLine_played').removeClass("avplayLine_played");
 }
 -->
