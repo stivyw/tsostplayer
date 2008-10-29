@@ -67,7 +67,7 @@
 		public var _playlist:XML = new XML();
 		
 		
-		private var _melody:Object = {
+		public var _melody:Object = {
 			title:'',
 			artist:'',
 			album:'',
@@ -227,6 +227,10 @@
 			return _status;
 		}
 		
+		public function actionMelody(){
+			return _melody;
+		}
+		
 		private function onPlay(event:MouseEvent):void {
 			this.actionPlay();
 			
@@ -338,7 +342,7 @@
 			ExternalInterface.addCallback("avPlay", actionPlay);
 			ExternalInterface.addCallback("avPause", actionPause);
 			ExternalInterface.addCallback("avStatus", actionStatus);
-			
+			ExternalInterface.addCallback("avMelody", actionMelody);
 		}
 		
 
