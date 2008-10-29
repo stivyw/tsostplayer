@@ -147,6 +147,7 @@
 
 		
 		private function ioErrorHandler(e:IOErrorEvent)	{
+			trace(e);
 			resetStatus();
 			ExternalInterface.call("AvplayerIoError",e);
 			//ExternalInterface.call('console.log',"[%s]",e);
@@ -160,6 +161,7 @@
 			removeEventListener(Event.SOUND_COMPLETE, this.onPlayComplete);
 			removeEventListener(Event.ENTER_FRAME, this.onEnterFrame);
 			removeEventListener(Event.COMPLETE, this.onSoundLoaded);
+			
 		}
 		
 		
@@ -245,24 +247,28 @@
 		}
 		
 		private function onEnterFrame(event:Event):void {
+			//开始播放
+			if(_channel.position > 0) {
+				//开始计时器
+				_showtimer.startTimer(_channel.position,_status.length);
 			
-			//开始计时器
-			_showtimer.startTimer(_channel.position,_status.length);
+				//显示计数
+				showTimer.text = _showtimer.timeStatus.played;
+				_status.played = _channel.position;
 			
-			//显示计数
-			showTimer.text = _showtimer.timeStatus.played;
-			_status.played = _channel.position;
-			
-			
-			//当前播放百分比
-			var pesent = _channel.position / _status.length;
-			pesent = pesent > 0 ? pesent : 0; //修正参数类型
-			
-			//进度条
-			_progressBar.playProgress(_progressBar.playbar,_UI.playedBar, pesent);
-			this.addChild(_progressBar.playbar);
-			
-			ExternalInterface.call("AvplayerEnterFrame",_status.played);
+				//当前播放百分比
+				var pesent = _channel.position / _status.length;
+				pesent = pesent > 0 ? pesent : 0; //修正参数类型
+
+				//进度条
+				_progressBar.playProgress(_progressBar.playbar,_UI.playedBar, pesent);
+				this.addChild(_progressBar.playbar);
+
+				ExternalInterface.call("AvplayerEnterFrame",_status.played);
+			}
+			else {
+				trace("Nothing to play");
+			}
 		}
 		
 		
@@ -279,11 +285,16 @@
 		}
 		
 		private function onLoadProgress(event:ProgressEvent):void {
-			//读取过程中动态计算全长
-			_status.length = _sound.length / (_sound.bytesLoaded / _sound.bytesTotal);
-			//读取进度条
-			_progressBar.playProgress(_progressBar.loadbar,_UI.loadedBar,_sound.bytesLoaded / _sound.bytesTotal);
-			this.addChild(_progressBar.loadbar);
+			if(_sound.length > 0) {
+				//读取过程中动态计算全长
+				_status.length = _sound.length / (_sound.bytesLoaded / _sound.bytesTotal);
+				//读取进度条
+				_progressBar.playProgress(_progressBar.loadbar,_UI.loadedBar,_sound.bytesLoaded / _sound.bytesTotal);
+				this.addChild(_progressBar.loadbar);
+			}
+			else {
+				trace("Nothing to load");
+			}
 		}
 		
 		private function onPlayComplete(event:Event) {
@@ -312,11 +323,9 @@
 			this.addChild(_progressBar.initProgress());
 			
 			//http://comicer.hzcnc.com/music/yjj/tenkonagala1001.mp3
-			_melody = {link:"http://www.fileden.com/files/2008/10/8/2134095/test.mp3"}
-			//_melody = {link:"test.mp3"}
-			
+			//_melody = {link:"http://www.fileden.com/files/2008/10/8/2134095/test.mp3"}
+			_melody = {link:"test.mp3"}
 
-			
 			
 			buttPlay.addEventListener(MouseEvent.CLICK,onPlay);			
 			buttPause.addEventListener(MouseEvent.CLICK,onPause);

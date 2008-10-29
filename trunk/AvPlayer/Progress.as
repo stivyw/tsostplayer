@@ -25,10 +25,12 @@
 		
 		public function playProgress(bar:Shape,loader:Object,percent:Number) {
 			//trace(percent);
-			bar.graphics.clear();
-			bar.graphics.beginFill(loader.bg);
-			bar.graphics.drawRect(loader.posx, loader.posy, loader.width * percent, loader.height);
-			bar.graphics.endFill();
+			if(percent > 0) {
+				bar.graphics.clear();
+				bar.graphics.beginFill(loader.bg);
+				bar.graphics.drawRect(loader.posx, loader.posy, loader.width * percent, loader.height);
+				bar.graphics.endFill();
+			}
 			return bar;
 		}
 
