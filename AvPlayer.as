@@ -1,6 +1,9 @@
 ﻿package {
 	import flash.events.*;
-	import flash.media.*;
+	import flash.media.Sound;
+	import flash.media.SoundChannel;
+	import flash.media.SoundTransform;
+	import flash.media.SoundLoaderContext;
 	import flash.display.*;
 	import flash.errors.*;
 	
@@ -105,11 +108,16 @@
 			
 			//首次点击,重新初始化Sound对象
 			if (_status.firstClick == false) {
+				try{
 				_sound = new Sound();
 				_req = new URLRequest(_melody.link);
 				//Load error hander
 				_sound.addEventListener(IOErrorEvent.IO_ERROR, this.ioErrorHandler);
 				_sound.load(_req,_streamPlay);
+				}
+				catch(e){
+					
+				}
 			}
 			try{
 					_status.firstClick = true;
@@ -147,21 +155,28 @@
 
 		
 		private function ioErrorHandler(e:IOErrorEvent)	{
+			
 			trace(e);
-			resetStatus();
-			ExternalInterface.call("AvplayerIoError",e);
+			actionReset();
+			//如果loading过程中退出，此处的参数传递在errorhandler中无法响应
+			ExternalInterface.call("AvplayerIoError");
 			//ExternalInterface.call('console.log',"[%s]",e);
 		}
 		
-		public function resetStatus(){
+		public function actionReset(){
 			_status.firstClick = false;
 			_status.isPlaying = false;
 			
+			removeEventListener(IOErrorEvent.IO_ERROR, this.ioErrorHandler);
 			removeEventListener(ProgressEvent.PROGRESS, this.onLoadProgress);
 			removeEventListener(Event.SOUND_COMPLETE, this.onPlayComplete);
 			removeEventListener(Event.ENTER_FRAME, this.onEnterFrame);
 			removeEventListener(Event.COMPLETE, this.onSoundLoaded);
 			
+			//读取过程中需要配合close来结束
+			
+			_sound.close();
+			_sound = null;
 		}
 		
 		
@@ -271,7 +286,7 @@
 				ExternalInterface.call("AvplayerEnterFrame",_status.played);
 			}
 			else {
-				trace("Nothing to play");
+				//trace(_channel.position);
 			}
 		}
 		
@@ -327,8 +342,8 @@
 			this.addChild(_progressBar.initProgress());
 			
 			//http://comicer.hzcnc.com/music/yjj/tenkonagala1001.mp3
-			//_melody = {link:"http://www.fileden.com/files/2008/10/8/2134095/test.mp3"}
-			_melody = {link:"test.mp3"}
+			_melody = {link:"http://www.fileden.com/files/2008/10/8/2134095/test.mp3"}
+			//_melody = {link:"test.mp3"}
 
 			
 			buttPlay.addEventListener(MouseEvent.CLICK,onPlay);			
@@ -341,6 +356,7 @@
 			ExternalInterface.addCallback("avStop", actionStop);
 			ExternalInterface.addCallback("avPlay", actionPlay);
 			ExternalInterface.addCallback("avPause", actionPause);
+			ExternalInterface.addCallback("avReset", actionReset);
 			ExternalInterface.addCallback("avStatus", actionStatus);
 			ExternalInterface.addCallback("avMelody", actionMelody);
 		}
