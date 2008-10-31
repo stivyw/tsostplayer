@@ -69,8 +69,10 @@
 <script type="text/javascript" src="avplayer.js"></script>
 <script type="text/javascript">
 <!--
-avpInit('./');
+var avp = new AvPlayer();
+//avpInit('./');
 $(document).ready(function(){
+/*
 	$("a[href$='.mp3']").each(function(){
 		avpInitList($(this));
 	});
@@ -78,6 +80,7 @@ $(document).ready(function(){
 	$("pre[class='lrc']").each(function(){
 		avpInitLrc($(this));
 	});
+*/
 });
 -->
 </script>

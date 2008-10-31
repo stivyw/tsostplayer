@@ -155,11 +155,10 @@
 
 		
 		private function ioErrorHandler(e:IOErrorEvent)	{
-			
 			trace(e);
 			actionReset();
 			//如果loading过程中退出，此处的参数传递在errorhandler中无法响应
-			ExternalInterface.call("AvplayerIoError");
+			ExternalInterface.call("avp.IoError");
 			//ExternalInterface.call('console.log',"[%s]",e);
 		}
 		
@@ -283,7 +282,7 @@
 				_progressBar.playProgress(_progressBar.playbar,_UI.playedBar, pesent);
 				this.addChild(_progressBar.playbar);
 
-				ExternalInterface.call("AvplayerEnterFrame",_status.played);
+				ExternalInterface.call("avp.EnterFrame",_status.played);
 			}
 			else {
 				//trace(_channel.position);
@@ -318,7 +317,7 @@
 		
 		private function onPlayComplete(event:Event) {
 			this.actionStop();
-			ExternalInterface.call("AvplayerPlayComplete");
+			ExternalInterface.call("avp.PlayComplete");
 		}
 		
 		private function onDropPointer(pesent) {
