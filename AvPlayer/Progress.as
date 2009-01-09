@@ -18,7 +18,7 @@
 		public function initProgress() {
 			var bar:Shape = new Shape();
 			bar.graphics.beginFill(UI.initBar.bg);
-			bar.graphics.drawRect(UI.initBar.posx, UI.initBar.posy, UI.initBar.width, UI.initBar.height);
+			bar.graphics.drawRoundRectComplex(UI.initBar.posx, UI.initBar.posy, UI.initBar.width, UI.initBar.height,UI.initBar.round,UI.initBar.round,UI.initBar.round,UI.initBar.round);
 			bar.graphics.endFill();
 			return bar;
 		}
@@ -28,7 +28,7 @@
 			if(percent > 0) {
 				bar.graphics.clear();
 				bar.graphics.beginFill(loader.bg);
-				bar.graphics.drawRect(loader.posx, loader.posy, loader.width * percent, loader.height);
+				bar.graphics.drawRoundRectComplex(loader.posx, loader.posy, loader.width * percent,loader.height,loader.round,loader.round,loader.round,loader.round);
 				bar.graphics.endFill();
 			}
 			return bar;
