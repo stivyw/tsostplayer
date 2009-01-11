@@ -15,25 +15,29 @@ package {
 	import flash.media.SoundLoaderContext;
 	import flash.display.*;
 	import flash.errors.*;
+	import flash.utils.ByteArray;
 	
-	import flash.net.URLRequest;
+	//import flash.net.URLRequest;
+	import flash.net.*;
 	//JS Interface
 	import flash.external.ExternalInterface;
 	import flash.text.TextField;
-	import com.adobe.serialization.json.*;
+	//import com.adobe.serialization.json.*;
 	import AvPlayer.*;
 	
 	/**
 	 * The AVPlayer Core Class
 	 *
-	 * @version    0.07
+	 * @version    0.08
 	 */
 	public class AvPlayer extends MovieClip{
+		
 
 		private var _sound:Sound = new Sound();
 		private var _req:URLRequest;
 		private var _channel:SoundChannel;
 		
+		//曲目播放那个状态
 		private var _status = {
 			hasLoaded:false, //已经将链接读入
 			loadComplete:false, //已经读取完毕
@@ -42,36 +46,38 @@ package {
 			loadLength:0, //已经读取的长度
 			length:0, //曲目全长
 			played:0, //已经播放长度
-			volume:0.7 //音量
+			volume:0.7, //音量
+			listIndex:0 //播放列表位置
 		}
 		
+		//UI设置
 		private var _UI = {
 			initBar: {
 				width:140,
 				height:14,
-				posx:60,
-				posy:3,
-				bg:"0xEFEFEF",
+				posx:58,
+				posy:3.5,
+				bg:"0xFFFFFF",
 				round:5
 			},
 			loadedBar:{
 				width:140,
 				height:14,
-				posx:60,
-				posy:3,
-				bg:"0xEAEAEA",
+				posx:58,
+				posy:3.5,
+				bg:"0xEFEFEF",
 				round:5
 			},
 			playedBar:{
 				width:140,
 				height:14,
-				posx:60,
-				posy:3,
+				posx:58,
+				posy:3.5,
 				bg:"0xCFE8FF",
 				round:5
 			},
 			pointer:{
-				x:60,
+				x:58,
 				y:5,
 				radius:2,
 				areaX:60,
@@ -83,17 +89,15 @@ package {
 				alpha:0
 			},
 			playerTimer : {
-				x:57,
-				y:2,
+				x:60,
+				y:0,
 				size:9,
 				textColor:"0x000000",
 				mouseEnabled:false
 			}
 		};
 		
-		private var _playlist:Object;
-		private var _playlistUrl:String = "";
-		private var _playlistXML:XML = new XML();
+
 		
 		//当前播放媒体
 		private var _melody:Object = {
@@ -106,18 +110,40 @@ package {
 			comment:'',
 			lyric:''
 		};
+		//生成List用
+		private var _melodySample:Object;
+		
+		//播放列表
+		private var _playlist:Array = new Array();
+		//播放列表URL
+		private var _playlistUrl:String = "";
+		private var _playlistXML:XML = new XML();
+		private var _playlistLoader:URLLoader;
 		
 		private var _streamPlay:SoundLoaderContext = new SoundLoaderContext(8000, true);
+		//声道
 		private var _trans:SoundTransform = new SoundTransform(_status.volume, 0);
 		
+		//Flash vars
 		private var _param:Object = LoaderInfo(root.loaderInfo).parameters;
 		
-		public var _showtimer;
+		//计时器
+		private var _showtimer;
+		//计时器的文字栏
+		private var _timerText:TextField = new TextField();
+		//进度条
 		public var _progressBar;
 		
-		public var _debug = true;
+		//Player全局设置
+		private var _options = {
+			debug : true, //Debug Mode
+			jsName : 'avp', // Js new Class Name
+			autoStart : false, //自动开始播放
+			autoNext : false, //自动播放下一首
+			shuffle : false //乱序播放
+		}
+		
 		public var _error = false;
-		public var _jsName = 'avp';
 		
 		/** ----------------------------
 		 * 
@@ -151,6 +177,8 @@ package {
 				actionStop();
 			}
 			
+			p(_melody);
+			
 			//未被读入,重新初始化Sound对象
 			if (_status.hasLoaded == false) {
 				try{
@@ -170,7 +198,7 @@ package {
 
 					//监控读取过程
 					_sound.addEventListener(ProgressEvent.PROGRESS, this.onLoadProgress);
-					
+					_sound..addEventListener(Event.ID3, this.onGetID3Info);
 					//增加读取完毕事件
 					_sound.addEventListener(Event.COMPLETE, this.onSoundLoaded);
 					
@@ -186,6 +214,11 @@ package {
 					//初始化暂停位置
 					_status.pausePosition = 0;
 					_status.isPlaying = true;
+					
+					//游标初始化
+					_progressBar.initPointer(this.onDropPointer);
+					this.addChild(_progressBar.pointerArea);
+					this.addChild(_progressBar.pointer);
 					
 					//增加完成监听
 					_channel.addEventListener(Event.SOUND_COMPLETE, this.onPlayComplete);
@@ -251,6 +284,7 @@ package {
 		 * @access public
 		 */
 		public function actionStop(position:Number = 0):void{
+			//还没有读入
 			if(!_status.hasLoaded) {
 				return;
 			}
@@ -295,7 +329,7 @@ package {
 				
 				
 				//时间显示
-				showTimer.text = '';
+				_timerText.text = '';
 			}
 		}
 		
@@ -318,6 +352,7 @@ package {
 		 * @access public
 		 */
 		public function actionSetMelody(melody){
+			//p(melody);
 			if(!melody) {
 				p('Nothing to SetMelody');
 				return false;
@@ -344,8 +379,54 @@ package {
 		 * @return void
 		 * @access public
 		 */
-		public function actionSetList(list){
-			_playlist = list;
+		public function actionSetList(url){
+			var list_url:URLRequest = new URLRequest(url);
+			_playlistLoader = new URLLoader(list_url);
+			_playlistLoader.addEventListener("complete", onListLoad);
+		}
+		
+
+		
+		public function actionNext(url = ''){
+			if(_status.isPlaying == false) {
+				//return p("not played yet");
+			}
+			
+			if(_status.listIndex == _playlist.length) {
+				return p('this is the last one');
+			}
+			
+			_status.listIndex < _playlist.length ? _status.listIndex++ : '';
+
+			for(var i in _playlist) {
+				if(i == _status.listIndex) {
+					actionSetMelody(_playlist[i]);
+					actionStop();
+					actionPlay(url);
+					break;
+				}
+			}
+		}
+		
+		public function actionPrev(url = ''){
+			if(_status.isPlaying == false) {
+				//return p("not played yet");
+			}
+			
+			if(_status.listIndex == 0) {
+				return p('this is the first one');
+			}
+			
+			_status.listIndex > 0 ? _status.listIndex-- : '';
+			
+			for(var i in _playlist) {
+				if(i == _status.listIndex) {
+					actionSetMelody(_playlist[i]);
+					actionStop();
+					actionPlay(url);
+					break;
+				}
+			}
 		}
 		
 		
@@ -394,7 +475,8 @@ package {
 		 * @access private
 		 */
 		private function onNext(event:MouseEvent):void {
-			ExternalInterface.call(_jsName + ".PlayNext");
+			this.actionNext();
+			ExternalInterface.call(_options.jsName + ".PlayNext");
 		}
 		/**
 		 * 被绑定的上一首事件
@@ -404,43 +486,10 @@ package {
 		 * @access private
 		 */
 		private function onPrev(event:MouseEvent):void {
-			ExternalInterface.call(_jsName + ".PlayPrev");
+			this.actionPrev();
+			ExternalInterface.call(_options.jsName + ".PlayPrev");
 		}
-		/**
-		 * 被绑定的监听事件
-		 *
-		 * @param  event:Event
-		 * @return void
-		 * @access private
-		 */
-		private function onEnterFrame(event:Event):void {
-			//开始播放
-			if(_channel.position > 0) {
-				try{
-					//开始计时器
-					_showtimer.startTimer(_channel.position,_status.length);
-				
-					//显示计数
-					showTimer.text = _showtimer.timeStatus.played;
-					_status.played = _channel.position;
-				
-					//当前播放百分比
-					var pesent = _channel.position / _status.length;
-					pesent = pesent > 0 ? pesent : 0; //修正参数类型
-	
-					//进度条
-					_progressBar.playProgress(_progressBar.playbar,_UI.playedBar, pesent);
-					this.addChild(_progressBar.playbar);
-					
-					this.addChild(showTimer);
-	
-					ExternalInterface.call(_jsName + ".EnterFrame",_status.played);
-				}
-				catch(e:Error) {
-					p("EnterFrame Error" + e);
-				}
-			}
-		}
+
 		
 		/**
 		 * 被绑定的读取进度事件
@@ -456,6 +505,7 @@ package {
 					_status.length = _sound.length / (_sound.bytesLoaded / _sound.bytesTotal);
 					//动态计算已经读取的长度
 					_status.loadLength = _status.length * (_sound.bytesLoaded / _sound.bytesTotal);
+
 					//读取进度条
 					_progressBar.playProgress(_progressBar.loadbar,_UI.loadedBar,_sound.bytesLoaded / _sound.bytesTotal);
 					this.addChild(_progressBar.loadbar);
@@ -478,11 +528,6 @@ package {
 			removeEventListener(ProgressEvent.PROGRESS, this.onLoadProgress);
 			_status.loadComplete = true;
 			_status.length = _sound.length;
-			
-			//游标初始化
-			_progressBar.initPointer(this.onDropPointer);
-			this.addChild(_progressBar.pointerArea);
-			this.addChild(_progressBar.pointer);
 		}
 		
 
@@ -495,7 +540,85 @@ package {
 		 */
 		private function onPlayComplete(event:Event) {
 			this.actionStop();
-			ExternalInterface.call(_jsName + ".PlayComplete");
+			ExternalInterface.call(_options.jsName + ".PlayComplete");
+		}
+		
+		/**
+		 * 被绑定的获取ID3 Tag事件
+		 *
+		 * @param  event:Event
+		 * @return void
+		 * @access private
+		 */
+		private function onGetID3Info(event:Event) {
+			var id3 = event.target.id3;
+			p(id3);
+		}
+		
+		private function onListLoad(event:Event):void {
+			_playlistXML = XML(_playlistLoader.data);
+			var tmp:Object = new Object;
+			
+			//有link,将link作为播放列表的第一条入栈
+			if(_param.link != '') {
+				tmp = cloneObj(_melodySample);
+				tmp.link = _param.link;
+				_playlist.push(tmp);
+			}
+
+			for(var i in _playlistXML.channel.item) {
+				//每回创建一个新的Obj
+				tmp = cloneObj(_melodySample);
+				tmp.title = _playlistXML.channel.item[i].title;
+				tmp.link = _playlistXML.channel.item[i].link;
+				_playlist.push(tmp);
+			}
+			//没有Link参数，将播放列表的第一条作为当前曲目
+			if(!_param.link) {
+				this.actionSetMelody(_playlist[0]);
+			}
+		}
+		
+		private function cloneObj(source:Object):* {
+			var copier:ByteArray = new ByteArray();
+			copier.writeObject(source);
+			copier.position = 0;
+			return(copier.readObject());
+		}
+		/**
+		 * 被绑定的监听事件
+		 *
+		 * @param  event:Event
+		 * @return void
+		 * @access private
+		 */
+		private function onEnterFrame(event:Event):void {
+			//开始播放
+			if(_channel.position > 0) {
+				try{
+					//开始计时器
+					_showtimer.startTimer(_channel.position,_status.length);
+				
+					//显示计数
+					_timerText.text = _showtimer.timeStatus.played;
+					_status.played = _channel.position;
+				
+					//当前播放百分比
+					var pesent = _channel.position / _status.length;
+					pesent = pesent > 0 ? pesent : 0; //修正参数类型
+	
+					//进度条
+					_progressBar.playProgress(_progressBar.playbar,_UI.playedBar, pesent);
+					this.addChild(_progressBar.playbar);
+					
+					this.addChild(_timerText);
+	
+					ExternalInterface.call(_options.jsName + ".EnterFrame",_status.played);
+				}
+				catch(e:Error) {
+					p("EnterFrame Error" + e);
+				}
+			}
 		}
 		
 		/**
@@ -531,7 +654,7 @@ package {
 		private function ioErrorHandler(e:IOErrorEvent)	{
 			trace(e);
 			actionReset();
-			ExternalInterface.call(_jsName + ".IoError");
+			ExternalInterface.call(_options.jsName + ".IoError");
 			//ExternalInterface.call('console.log',"[%s]",e); //如果loading过程中退出，此处的参数传递在errorhandler中无法响应,所以不能直接用ExternalInterface.call
 		}
 		
@@ -543,7 +666,7 @@ package {
 		 * @access private
 		 */
 		private function p(m,level = 0){
-			if(!_debug) return false;
+			if(!_options.debug) return false;
 			var type = typeof(m);
 			if(type == 'object') {
 				for(var i in m) {
@@ -575,14 +698,27 @@ package {
 
 		}
 		
+		private function initParam(){
+			_melodySample = cloneObj(_melody);
+			for(var i in _param) {
+				if(i == 'link') {
+					actionSetMelody(_param.link);
+				}
+				if(i == 'list') {
+					actionSetList(_param.list);
+				}
+			}
+		}
+		
 		private function initTimer(){
 			//时间显示初始化
 			_showtimer = new Showtimer();
-			showTimer.x = _UI.playerTimer.x;
-			showTimer.y = _UI.playerTimer.y;
-			//showTimer.size = _UI.playerTimer.size;
-			showTimer.mouseEnabled = _UI.playerTimer.mouseEnabled;
-			showTimer.textColor = _UI.playerTimer.textColor;
+
+			_timerText.x = _UI.playerTimer.x;
+			_timerText.y = _UI.playerTimer.y;
+			//_timerText.size = _UI.playerTimer.size;
+			_timerText.mouseEnabled = _UI.playerTimer.mouseEnabled;
+			_timerText.textColor = _UI.playerTimer.textColor;
 		}
 		
 		/**
@@ -600,9 +736,11 @@ package {
 			//当前播放曲目初始化
 			initTimer();
 			
-			//this.actionSetMelody(_param.link);
-			this.actionSetMelody('http://mediaplayer.yahoo.com/example1.mp3');
-
+			//如果有参数，初始化参数
+			//_param.link = "http://mediaplayer.yahoo.com/example1.mp3";
+			//_param.list = "list.xml";
+			initParam();
+			
 			//对元素绑定事件
 			buttPlay.addEventListener(MouseEvent.CLICK,onPlay);			
 			buttPause.addEventListener(MouseEvent.CLICK,onPause);
@@ -630,7 +768,6 @@ package {
 		 */
 		public function AvPlayer() {
 			initPlayer();
-			
 		}
 		
 	}
