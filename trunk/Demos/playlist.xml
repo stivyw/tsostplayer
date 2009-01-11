@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">	
+	<channel>
+		<title>AVPlayer</title>
+		<link>http://code.google.com/p/tsostplayer/</link>
+		
+		<item>
+			<title>明日天気に</title>
+			<link>http://xhh4bw.bay.livefilestore.com/y1pf3AUkJcahV3yOst5P9N7F5L3zeue8PnEgz4K0ZYJSsEOElDPfJVJZn1jbj45peOvSs_xN-BgkDhVbCFNFusFXQ/ashita_no_tenki.mp3</link>
+		</item>
+		
+		<item>
+			<title>画心</title>
+			<link>http://xhh4bw.bay.livefilestore.com/y1pOgeWI_-OU0j9DEZYFhWNgleqwC6kz4Gnr4JLOC3XWB0APof8hh0RguOQWGzbK163iILeOa7bNW3jlE5NySNpsA/huaxin.mp3</link>
+		</item>
+		
+		<item>
+			<title>Test1</title>
+			<link>http://mediaplayer.yahoo.com/example1.mp3</link>
+		</item>
+
+		<item>
+			<title>Test2</title>
+			<link>http://mediaplayer.yahoo.com/example2.mp3</link>
+		</item>
+
+		<item>
+			<title>Test3</title>
+			<link>http://mediaplayer.yahoo.com/example3.mp3</link>
+		</item>
+
+	</channel>
+</rss>
