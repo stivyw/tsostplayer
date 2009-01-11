@@ -120,6 +120,13 @@ function AvPlayer(dir,id){
 	/**
 	 * PlayList functions
 	**/
+	this.addlist = function(){
+	
+	}
+
+	this.removelist = function(){
+	
+	}
 
 	this.href2list = function(href){
 		href.addClass('avplayList');
@@ -230,7 +237,7 @@ function AvPlayer(dir,id){
 		var res = '';
 		for(var i = 0;i < lyric.length;i++) {
 			//res += '<span class="avplayLine avpLine_'+ lyric[i].time +'" onclick="alert(avp);">' + lyric[i].content + "</span>\n";
-			res += '<span class="avplayLine avpLine_'+ lyric[i].time +'" onclick="avp.playthis(this);">' + lyric[i].content + "</span>\n";
+			res += '<p class="avplayLine avpLine_'+ lyric[i].time +'" onclick="avp.playthis(this);">' + lyric[i].content + "</p>\n";
 		}
 		return res;
 	}
@@ -241,6 +248,14 @@ function AvPlayer(dir,id){
 		av.lyric.id = id;
 		pre.replaceWith('<div id="' + id + '" class = "avplayLrcCase">' + printLyric(av.lyric.main) + '</div>');
 		//return pre;
+	}
+
+	this.addlyc = function(){
+	
+	}
+
+	this.removelyc = function(){
+	
 	}
 
 	/**

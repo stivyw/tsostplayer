@@ -28,14 +28,20 @@ package {
 	/**
 	 * The AVPlayer Core Class
 	 *
-	 * @version    0.08
+	 * @version    0.09
 	 */
 	public class AvPlayer extends MovieClip{
-		
 
-		private var _sound:Sound = new Sound();
-		private var _req:URLRequest;
-		private var _channel:SoundChannel;
+		//Player全局设置
+		private var _options = {
+			debug : true, //Debug Mode
+			jsName : 'avp', // Js new Class Name
+			autoStart : false, //自动开始播放
+			autoNext : false, //自动播放下一首
+			shuffle : false, //乱序播放
+			loop : false //循环播放
+		}
+
 		
 		//曲目播放那个状态
 		private var _status = {
@@ -90,14 +96,12 @@ package {
 			},
 			playerTimer : {
 				x:60,
-				y:0,
+				y:0.5,
 				size:9,
 				textColor:"0x000000",
 				mouseEnabled:false
 			}
 		};
-		
-
 		
 		//当前播放媒体
 		private var _melody:Object = {
@@ -110,6 +114,12 @@ package {
 			comment:'',
 			lyric:''
 		};
+		
+
+		private var _sound:Sound = new Sound();
+		private var _req:URLRequest;
+		private var _channel:SoundChannel;
+		
 		//生成List用
 		private var _melodySample:Object;
 		
@@ -134,14 +144,7 @@ package {
 		//进度条
 		public var _progressBar;
 		
-		//Player全局设置
-		private var _options = {
-			debug : true, //Debug Mode
-			jsName : 'avp', // Js new Class Name
-			autoStart : false, //自动开始播放
-			autoNext : false, //自动播放下一首
-			shuffle : false //乱序播放
-		}
+
 		
 		public var _error = false;
 		
@@ -177,7 +180,7 @@ package {
 				actionStop();
 			}
 			
-			p(_melody);
+			//p(_melody);
 			
 			//未被读入,重新初始化Sound对象
 			if (_status.hasLoaded == false) {
@@ -381,22 +384,52 @@ package {
 		 */
 		public function actionSetList(url){
 			var list_url:URLRequest = new URLRequest(url);
-			_playlistLoader = new URLLoader(list_url);
+			_playlistLoader = new URLLoader();
+			_playlistLoader.addEventListener(IOErrorEvent.IO_ERROR, this.ioErrorHandler);
 			_playlistLoader.addEventListener("complete", onListLoad);
+			try{
+				_playlistLoader.load(list_url);
+			}
+			catch(e:Error){
+				
+			}
 		}
 		
 
-		
+		/**
+		 * 播放下一首
+		 *
+		 * @param  url:String 下一首的Url
+		 * @return void
+		 * @access public
+		 */
 		public function actionNext(url = ''){
+			
+			//未播放状态点击Next是否开始播放
 			if(_status.isPlaying == false) {
 				//return p("not played yet");
 			}
 			
-			if(_status.listIndex == _playlist.length) {
-				return p('this is the last one');
+			//顺序播放
+			if(!_options.shuffle) {
+				
+				//最后一首
+				if(_status.listIndex == _playlist.length - 1) {
+					//回到第一首
+					_status.listIndex = 0;
+					//return p('this is the last one');
+				}
+				else {
+					//下一首
+					_status.listIndex < _playlist.length ? _status.listIndex++ : '';
+				}
 			}
-			
-			_status.listIndex < _playlist.length ? _status.listIndex++ : '';
+			//乱序播放
+			else {
+				//产生播放列表范围内的随机数
+				_status.listIndex = Math.floor(Math.random()* _playlist.length);
+			}
+
 
 			for(var i in _playlist) {
 				if(i == _status.listIndex) {
@@ -408,16 +441,36 @@ package {
 			}
 		}
 		
+		/**
+		 * 播放上一首
+		 *
+		 * @param  url:String 上一首的Url
+		 * @return void
+		 * @access public
+		 */
 		public function actionPrev(url = ''){
 			if(_status.isPlaying == false) {
 				//return p("not played yet");
 			}
 			
-			if(_status.listIndex == 0) {
-				return p('this is the first one');
+			//顺序播放
+			if(!_options.shuffle) {
+				
+				//第一首
+				if(_status.listIndex == 0) {
+					//回到最后一首
+					_status.listIndex = _playlist.length - 1;
+				}
+				else {
+					//上一首
+					_status.listIndex > 0 ? _status.listIndex-- : '';
+				}
 			}
-			
-			_status.listIndex > 0 ? _status.listIndex-- : '';
+			//乱序播放
+			else {
+				//产生播放列表范围内的随机数
+				_status.listIndex = Math.floor(Math.random()* _playlist.length);
+			}
 			
 			for(var i in _playlist) {
 				if(i == _status.listIndex) {
@@ -540,6 +593,19 @@ package {
 		 */
 		private function onPlayComplete(event:Event) {
 			this.actionStop();
+			
+			//有播放列表 and 自动连续播放
+			if(_playlist.length > 0 && _options.autoNext) {
+				
+				if(!_options.shuffle && !_options.loop && _status.listIndex == _playlist.length - 1) {
+					//顺序播放且不循环,在最后一首停止
+				}
+				else {
+					this.actionNext();
+					this.actionPlay();
+				}
+			}
+			
 			ExternalInterface.call(_options.jsName + ".PlayComplete");
 		}
 		
@@ -552,15 +618,24 @@ package {
 		 */
 		private function onGetID3Info(event:Event) {
 			var id3 = event.target.id3;
-			p(id3);
+			//p(id3);
 		}
 		
+		/**
+		 * 被绑定的播放列表读取事件
+		 *
+		 * @param  event:Event
+		 * @return void
+		 * @access private
+		 */
 		private function onListLoad(event:Event):void {
+			
 			_playlistXML = XML(_playlistLoader.data);
+			
 			var tmp:Object = new Object;
 			
 			//有link,将link作为播放列表的第一条入栈
-			if(_param.link != '') {
+			if(_param.link) {
 				tmp = cloneObj(_melodySample);
 				tmp.link = _param.link;
 				_playlist.push(tmp);
@@ -572,19 +647,17 @@ package {
 				tmp.title = _playlistXML.channel.item[i].title;
 				tmp.link = _playlistXML.channel.item[i].link;
 				_playlist.push(tmp);
+				//p(tmp);
 			}
+			
 			//没有Link参数，将播放列表的第一条作为当前曲目
 			if(!_param.link) {
 				this.actionSetMelody(_playlist[0]);
+				_options.autoStart == true ? this.actionPlay() : '';
 			}
 		}
 		
-		private function cloneObj(source:Object):* {
-			var copier:ByteArray = new ByteArray();
-			copier.writeObject(source);
-			copier.position = 0;
-			return(copier.readObject());
-		}
+
 		/**
 		 * 被绑定的监听事件
 		 *
@@ -653,7 +726,7 @@ package {
 		 */
 		private function ioErrorHandler(e:IOErrorEvent)	{
 			trace(e);
-			actionReset();
+			_status.isPlaying ? this.actionReset() : '';
 			ExternalInterface.call(_options.jsName + ".IoError");
 			//ExternalInterface.call('console.log',"[%s]",e); //如果loading过程中退出，此处的参数传递在errorhandler中无法响应,所以不能直接用ExternalInterface.call
 		}
@@ -698,18 +771,52 @@ package {
 
 		}
 		
+		/**
+		 * 根据Flash Vars初始化内部参数
+		 *
+		 * @param  void
+		 * @return void
+		 * @access private
+		 */
 		private function initParam(){
-			_melodySample = cloneObj(_melody);
-			for(var i in _param) {
-				if(i == 'link') {
-					actionSetMelody(_param.link);
-				}
-				if(i == 'list') {
-					actionSetList(_param.list);
-				}
+			
+			if(_param.autostart) {
+				_options.autoStart = _param.autostart;
 			}
+			
+			if(_param.autonext) {
+				_options.autoNext = _param.autonext;
+			}
+			
+			if(_param.shuffle) {
+				_options.shuffle = _param.shuffle;
+			}
+			
+			if(_param.loop) {
+				_options.loop = _param.loop;
+			}
+			
+			if(_param.list) {
+				_melodySample = cloneObj(_melody);
+				this.actionSetList(_param.list);
+			}
+			
+			if(_param.link) {
+				this.actionSetMelody(_param.link);
+				//自动开始播放
+				_options.autoStart == true ? this.actionPlay() : '';
+			}
+			
+
 		}
 		
+		/**
+		 * 初始化计时器
+		 *
+		 * @param  void
+		 * @return void
+		 * @access private
+		 */
 		private function initTimer(){
 			//时间显示初始化
 			_showtimer = new Showtimer();
@@ -738,7 +845,7 @@ package {
 			
 			//如果有参数，初始化参数
 			//_param.link = "http://mediaplayer.yahoo.com/example1.mp3";
-			//_param.list = "list.xml";
+			//_param.list = "Demos/list.xml";
 			initParam();
 			
 			//对元素绑定事件
@@ -770,6 +877,19 @@ package {
 			initPlayer();
 		}
 		
+		/**
+		 * 复制一个对象而不是引用
+		 *
+		 * @param source:Object 所要复制的对象
+		 * @return Object
+		 * @access private
+		 */
+		private function cloneObj(source:Object):* {
+			var copier:ByteArray = new ByteArray();
+			copier.writeObject(source);
+			copier.position = 0;
+			return(copier.readObject());
+		}
 	}
 	
 }
