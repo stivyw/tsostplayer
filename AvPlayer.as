@@ -840,7 +840,7 @@ package {
 			_progressBar = new Progress(_UI);
 			this.addChild(_progressBar.initProgress());
 			
-			//当前播放曲目初始化
+			//计时器初始化
 			initTimer();
 			
 			//如果有参数，初始化参数

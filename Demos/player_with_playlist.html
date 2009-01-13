@@ -9,48 +9,33 @@
 <body>
 <h1>Avplayer Demos - With Playlist</h1>
 <hr />
-<pre>
-&lt;object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" 
- codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=10,0,0,0" 
- width="240" height="20" id="avplayer" align="middle"&gt;
-	&lt;param name="allowScriptAccess" value="sameDomain" /&gt;
-	&lt;param name="allowFullScreen" value="false" /&gt;
+
+<pre class="jscript">
+&lt;object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="240" height="20"&gt;
 	&lt;param name="movie" value="../avplayer.swf?list=playlist.xml" /&gt;
-	&lt;param name="quality" value="high" /&gt;&lt;param name="bgcolor" value="#ffffff" /&gt;
-	&lt;embed src="../avplayer.swf?list=playlist.xml" 
-	quality="high" 
-	bgcolor="#ffffff" 
-	width="240" 
-	height="20" 
-	name="avplayer" 
-	align="middle" 
-	allowScriptAccess="sameDomain" 
-	allowFullScreen="false" 
-	type="application/x-shockwave-flash" 
-	pluginspage="http://www.adobe.com/go/getflashplayer_cn" /&gt;
+	&lt;!--[if !IE]&gt;--&gt;
+	&lt;object type="application/x-shockwave-flash" data="../avplayer.swf?list=playlist.xml" width="240" height="20"&gt;
+		&lt;!--&lt;![endif]--&gt;
+		&lt;p&gt;&lt;a href="http://www.adobe.com/go/getflashplayer"&gt;To use AvPlayer ,You need get Adobe Flash player first&lt;/a&gt;&lt;/p&gt;
+		&lt;!--[if !IE]&gt;--&gt;
+	&lt;/object&gt;
+	&lt;!--&lt;![endif]--&gt;
 &lt;/object&gt;
 </pre>
+
 <hr />
 
-<object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" 
- codebase="http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=10,0,0,0" 
- width="240" height="20" id="avplayer" align="middle">
-	<param name="allowScriptAccess" value="sameDomain" />
-	<param name="allowFullScreen" value="false" />
+<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="240" height="20">
 	<param name="movie" value="../avplayer.swf?list=playlist.xml" />
-	<param name="quality" value="high" /><param name="bgcolor" value="#ffffff" />
-	<embed src="../avplayer.swf?list=playlist.xml" 
-	quality="high" 
-	bgcolor="#ffffff" 
-	width="240" 
-	height="20" 
-	name="avplayer" 
-	align="middle" 
-	allowScriptAccess="sameDomain" 
-	allowFullScreen="false" 
-	type="application/x-shockwave-flash" 
-	pluginspage="http://www.adobe.com/go/getflashplayer_cn" />
+	<!--[if !IE]>-->
+	<object type="application/x-shockwave-flash" data="../avplayer.swf?list=playlist.xml" width="240" height="20">
+		<!--<![endif]-->
+		<p><a href="http://www.adobe.com/go/getflashplayer">To use AvPlayer ,You need get Adobe Flash player first</a></p>
+		<!--[if !IE]>-->
+	</object>
+	<!--<![endif]-->
 </object>
+
 </body>
 </html>
 
