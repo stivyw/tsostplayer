@@ -60,7 +60,7 @@ function AvPlayerMini(){
 		if(typeof(input) == 'object') {
 			param = input;
 		}
-		av.swfobject.embedSWF(av.dir + av.swf, id, av.playerWidth, av.playerHeigth, "10.0.0.0", av.dir + "expressInstall.swf",param);  
+		av.swfobject.embedSWF(av.dir + av.swf, id, av.playerWidth, av.playerHeigth, "10.0.0.0", av.dir + "expressInstall.swf",param,{wmode:"transparent"});  
 	}
 
 	this.swfobject = function() {
@@ -145,14 +145,6 @@ function AvPlayerMini(){
 				ie = false,
 				windows = p ? /win/.test(p) : /win/.test(u),
 				mac = p ? /mac/.test(p) : /mac/.test(u);
-			/*@cc_on
-				ie = true;
-				@if (@_win32)
-					windows = true;
-				@elif (@_mac)
-					mac = true;
-				@end
-			@*/
 			return { w3cdom:w3cdom, pv:playerVersion, webkit:webkit, ie:ie, win:windows, mac:mac };
 		}();
 
