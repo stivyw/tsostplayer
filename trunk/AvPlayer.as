@@ -16,7 +16,7 @@ package {
 	import flash.display.*;
 	import flash.errors.*;
 	import flash.utils.ByteArray;
-	
+
 	//import flash.net.URLRequest;
 	import flash.net.*;
 	//JS Interface
@@ -39,7 +39,9 @@ package {
 			autoStart : false, //自动开始播放
 			autoNext : false, //自动播放下一首
 			shuffle : false, //乱序播放
-			loop : false //循环播放
+			loop : false, //循环播放
+			lyricOn : false, //歌词开启
+			delay : 300 //歌词过渡的提前显示间隔，单位ms
 		}
 
 		
@@ -53,7 +55,9 @@ package {
 			length:0, //曲目全长
 			played:0, //已经播放长度
 			volume:0.7, //音量
-			listIndex:0 //播放列表位置
+			listIndex:0, //播放列表位置
+			continuPlay:false, //从中断处再开
+			jumpPlay:false //跳转播放
 		}
 		
 		//UI设置
@@ -141,6 +145,9 @@ package {
 		private var _showtimer;
 		//计时器的文字栏
 		private var _timerText:TextField = new TextField();
+		//歌词相关
+		private var _showLyric;
+		private var _lyricStatus;
 		//进度条
 		public var _progressBar;
 		
@@ -209,6 +216,7 @@ package {
 					addEventListener(Event.ENTER_FRAME, this.onEnterFrame);
 					
 					//开始播放
+					
 					_channel = _sound.play(_status.pausePosition,1,_trans);
 					
 					//音量
@@ -395,6 +403,9 @@ package {
 			}
 		}
 		
+		public function actionSetLyric(lrc){
+			_melody.lyric = lrc;
+		}
 
 		/**
 		 * 播放下一首
@@ -675,7 +686,9 @@ package {
 					//显示计数
 					_timerText.text = _showtimer.timeStatus.played;
 					_status.played = _channel.position;
-				
+					
+
+					
 					//当前播放百分比
 					var pesent = _channel.position / _status.length;
 					pesent = pesent > 0 ? pesent : 0; //修正参数类型
@@ -686,12 +699,21 @@ package {
 					
 					this.addChild(_timerText);
 	
-					ExternalInterface.call(_options.jsName + ".EnterFrame",_status.played);
+					//ExternalInterface.call(_options.jsName + ".EnterFrame",_status.played);
+					
+					this.onShowLyric(_channel.position);
+					
 				}
 				catch(e:Error) {
 					p("EnterFrame Error" + e);
 				}
 			}
+		}
+		
+		private function onShowLyric(t){
+			if(!_options.lyricOn || t < _lyricStatus.thisTime) return;
+			_lyricStatus = _showLyric.Find(t);
+			p(_lyricStatus.thisLyric);
 		}
 		
 		/**
@@ -779,26 +801,19 @@ package {
 		 * @access private
 		 */
 		private function initParam(){
-			
-			if(_param.autostart) {
-				_options.autoStart = _param.autostart;
-			}
-			
-			if(_param.autonext) {
-				_options.autoNext = _param.autonext;
-			}
-			
-			if(_param.shuffle) {
-				_options.shuffle = _param.shuffle;
-			}
-			
-			if(_param.loop) {
-				_options.loop = _param.loop;
+
+			for(var i in _param){
+				_options[i] = _param[i];
 			}
 			
 			if(_param.list) {
 				_melodySample = cloneObj(_melody);
 				this.actionSetList(_param.list);
+			}
+			else {
+				//没有播放列表，自动隐藏按钮
+				this.removeChild(buttPrev);
+				this.removeChild(buttNext);
 			}
 			
 			if(_param.link) {
@@ -828,6 +843,12 @@ package {
 			_timerText.textColor = _UI.playerTimer.textColor;
 		}
 		
+		private function initLyric(){
+			_melody.lyric = "[ti:明日天気に．．．]\n[ar:Remi]\n[00:01.59][00:01.20][00:01.21][00:01.22]明日天気に．．．\ndefw[00:05.11]fwew\n[00:05.22]nfeawfew[00:05.23]\n[00:01.20][00:05.87][00:05.88]作词：志倉千代丸 \n[00:08.67]作曲：志倉千代丸 \n[00:11.39]編曲：吉原かつみ \n[00:13.64]コーラス：中澤 里実\n[00:15.67]演唱：Remi\n[00:17.14]\n[00:29.06]一緒にいたんだよね？（I feel your love）  \n[00:38.42]気持ちも一つだよね？（dream come true it forever） \n[00:47.63]音もなくいつか\n[00:52.35]穏やかなページに \n[00:56.54]聞き分けのない\n[00:58.77]ノイズが溢れ出す \n[01:05.22]目の前に降り注ぐ\n[01:09.86]この雨は天気雨 \n[01:14.49]上がるように　おまじない \n[01:19.10]願いは叶うのかな？ \n[01:26.78]「サヨナラ」想い出の日\n[01:32.56]出逢いも、あの場所も \n[01:37.32]離れて行くんだね　もっともっと \n[01:45.17]最後のその言葉を　聞こえないフリして \n[01:55.61]失って気付いた　あなたの声\n[02:04.12]大きくなるよ \n[02:08.43]\n[02:31.47]例えば沈黙とか（I feel your love） \n[02:40.60]それさえ気まずいよね（dream come true it forever） \n[02:49.94]他の誰よりも\n[02:54.46]特別な存在 \n[02:58.80]その瞳には　誰を映しているの？ \n[03:07.45]あても無く待ちわびる\n[03:12.14]果たされぬ約束が \n[03:16.77]この胸を　揺らしてる \n[03:21.31]いつかは叶うのかな？ \n[03:29.10]天使がくれた季節\n[03:34.89]想い出の詰まった \n[03:39.44]いつかまた笑顔になれるのかな \n[03:47.53]記憶に手をふっても\n[03:53.32]離れてくれなくて \n[03:57.94]全ての繋がりが　切れたままで\n[04:06.38]乱れているよ\n[04:10.61]";
+			_showLyric = new Lyric(_melody.lyric);
+			_lyricStatus = _showLyric.Find(0);
+		}
+		
 		/**
 		 * 初始化播放器
 		 *
@@ -844,10 +865,12 @@ package {
 			initTimer();
 			
 			//如果有参数，初始化参数
-			//_param.link = "http://mediaplayer.yahoo.com/example1.mp3";
+			_param.link = "http://xhh4bw.bay.livefilestore.com/y1pf3AUkJcahV3yOst5P9N7F5L3zeue8PnEgz4K0ZYJSsEOElDPfJVJZn1jbj45peOvSs_xN-BgkDhVbCFNFusFXQ/ashita_no_tenki.mp3";
 			//_param.list = "Demos/list.xml";
 			initParam();
 			
+			_options.lyricOn ? initLyric() : '';
+					
 			//对元素绑定事件
 			buttPlay.addEventListener(MouseEvent.CLICK,onPlay);			
 			buttPause.addEventListener(MouseEvent.CLICK,onPause);
@@ -864,6 +887,7 @@ package {
 			ExternalInterface.addCallback("avStatus", actionStatus);
 			ExternalInterface.addCallback("avMelody", actionSetMelody);
 			ExternalInterface.addCallback("avList", actionSetList);
+			ExternalInterface.addCallback("avLyric", actionSetLyric);
 		}
 
 		/**
