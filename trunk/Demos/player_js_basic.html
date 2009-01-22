@@ -23,7 +23,6 @@ var avp = new AvPlayer();
 <div id="page">
 
 <h3><a rel="external" href="http://xhh4bw.bay.livefilestore.com/y1pf3AUkJcahV3yOst5P9N7F5L3zeue8PnEgz4K0ZYJSsEOElDPfJVJZn1jbj45peOvSs_xN-BgkDhVbCFNFusFXQ/ashita_no_tenki.mp3">Remi - 明日天気に．．．</a></h3>
-
 <pre class="lrc">
 [ti:明日天気に．．．]
 [ar:Remi]
@@ -69,22 +68,30 @@ var avp = new AvPlayer();
 [04:06.38]乱れているよ
 [04:10.61]
 </pre>
-
-	
+<input id="play" type="button" value="播放" />
+<input id="pause" type="button" value="暂停"  onclick="AvPlayer.pause();" />
+<input id="stop" type="button" value="停止"  onclick="AvPlayer.stop();"  />
+<input id="next" type="button" value="上一首"  onclick="AvPlayer.prev();" />
+<input id="next" type="button" value="下一首"  onclick="AvPlayer.next();" />
+<input id="status" type="button" value="Status"  onclick="p(AvPlayer.status());" />
 <!-- #page end -->
 </div>
 <script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
-<script type="text/javascript" src="../jquery-ui.js"></script>
 <script type="text/javascript" src="../avplayer.src.js"></script>
 <script type="text/javascript">
 <!--
-//var avp = new AvPlayer("../");
 $(document).ready(function(){
+
 	$("a").click(function(){
-		alert(this.href);
 		AvPlayer.play(this.href);
 		return false;
 	});
+	
+	$("#play").click(function(){
+		AvPlayer.lyric($(".lrc").html());
+		AvPlayer.play("http://xhh4bw.bay.livefilestore.com/y1pf3AUkJcahV3yOst5P9N7F5L3zeue8PnEgz4K0ZYJSsEOElDPfJVJZn1jbj45peOvSs_xN-BgkDhVbCFNFusFXQ/ashita_no_tenki.mp3");
+	});
+
 });
 -->
 </script>
