@@ -28,24 +28,24 @@ package {
 	/**
 	 * The AVPlayer Core Class
 	 *
-	 * @version    0.09
+	 * @version    0.11
 	 */
 	public class AvPlayer extends MovieClip{
 
 		//Player全局设置
 		private var _options = {
 			debug : true, //Debug Mode
-			jsName : 'avp', // Js new Class Name
+			jsName : 'AvPlayer', // Js new Class Name
 			autoStart : false, //自动开始播放
 			autoNext : false, //自动播放下一首
 			shuffle : false, //乱序播放
 			loop : false, //循环播放
-			lyricOn : false, //歌词开启
-			delay : 300 //歌词过渡的提前显示间隔，单位ms
+			lyricOn : true, //歌词开启
+			delay : -1000 //歌词过渡的提前显示间隔，单位ms
 		}
 
 		
-		//曲目播放那个状态
+		//曲目播放状态
 		private var _status = {
 			hasLoaded:false, //已经将链接读入
 			loadComplete:false, //已经读取完毕
@@ -57,7 +57,10 @@ package {
 			volume:0.7, //音量
 			listIndex:0, //播放列表位置
 			continuPlay:false, //从中断处再开
-			jumpPlay:false //跳转播放
+			jumpPlay:false, //跳转播放
+			listReady:false, //播放列表已经设置完毕
+			lrcReady:false, //歌词已经正确解析
+			lyric : {}
 		}
 		
 		//UI设置
@@ -153,7 +156,7 @@ package {
 		
 
 		
-		public var _error = false;
+		//public var _error = false;
 		
 		/** ----------------------------
 		 * 
@@ -251,6 +254,9 @@ package {
 			//重置曲目播放状态
 			_status.hasLoaded = false;
 			_status.isPlaying = false;
+			_status.continuPlay = false;
+			_status.jumpPlay = false;
+			_status.lrcReady = false;
 			
 			//解除时间绑定
 			removeEventListener(IOErrorEvent.IO_ERROR, this.ioErrorHandler);
@@ -394,19 +400,56 @@ package {
 			var list_url:URLRequest = new URLRequest(url);
 			_playlistLoader = new URLLoader();
 			_playlistLoader.addEventListener(IOErrorEvent.IO_ERROR, this.ioErrorHandler);
-			_playlistLoader.addEventListener("complete", onListLoad);
+			_playlistLoader.addEventListener("complete", onListLoaded);
 			try{
 				_playlistLoader.load(list_url);
 			}
 			catch(e:Error){
-				
+				p(e);
 			}
 		}
 		
-		public function actionSetLyric(lrc){
-			_melody.lyric = lrc;
+		/**
+		 * 获得当前曲目列表
+		 *
+		 * @param  void
+		 * @return _playlist or false
+		 * @access public
+		 */
+		public function actionGetList(){
+			return _status.listReady ? _playlist : false;
 		}
-
+		
+		/**
+		 * 传入歌词并解析
+		 *
+		 * @param lrc:String
+		 * @return void
+		 * @access public
+		 */
+		public function actionSetLyric(lrc:String){
+			_melody.lyric = lrc;
+			_showLyric = new Lyric();
+			if(_options.delay != 0) {
+				_showLyric.SetOptions({delay:_options.delay});
+			}
+			_showLyric.Parse(_melody.lyric);
+			_lyricStatus = _showLyric.Find(0);
+			
+			_status.lyric = _lyricStatus;
+			_status.lrcReady = true;
+		}
+		
+		/**
+		 * 获得解析後的歌词
+		 *
+		 * @param  void
+		 * @return _showLyric or false
+		 * @access public
+		 */
+		public function actionGetLyric(){
+			return _showLyric is Lyric ? _showLyric.lrcObj : false;
+		}
 		/**
 		 * 播放下一首
 		 *
@@ -510,6 +553,7 @@ package {
 		 */
 		private function onPlay(event:MouseEvent):void {
 			this.actionPlay();
+			ExternalInterface.call(_options.jsName + ".PlayPlay");
 		}
 		/**
 		 * 被绑定的暂停事件
@@ -520,6 +564,7 @@ package {
 		 */
 		private function onPause(event:MouseEvent):void {
 			this.actionPause();
+			ExternalInterface.call(_options.jsName + ".PlayPause");
 		}
 		/**
 		 * 被绑定的停止事件
@@ -530,6 +575,7 @@ package {
 		 */
 		private function onStop(event:MouseEvent):void {
 			this.actionStop();
+			ExternalInterface.call(_options.jsName + ".PlayStop");
 		}
 		/**
 		 * 被绑定的下一首事件
@@ -592,6 +638,7 @@ package {
 			removeEventListener(ProgressEvent.PROGRESS, this.onLoadProgress);
 			_status.loadComplete = true;
 			_status.length = _sound.length;
+			ExternalInterface.call(_options.jsName + ".PlaySoundLoaded");
 		}
 		
 
@@ -628,7 +675,8 @@ package {
 		 * @access private
 		 */
 		private function onGetID3Info(event:Event) {
-			var id3 = event.target.id3;
+			//
+			//var id3 = event.target.id3;
 			//p(id3);
 		}
 		
@@ -639,7 +687,7 @@ package {
 		 * @return void
 		 * @access private
 		 */
-		private function onListLoad(event:Event):void {
+		private function onListLoaded(event:Event):void {
 			
 			_playlistXML = XML(_playlistLoader.data);
 			
@@ -666,6 +714,9 @@ package {
 				this.actionSetMelody(_playlist[0]);
 				_options.autoStart == true ? this.actionPlay() : '';
 			}
+			
+			_status.listReady = true;
+			ExternalInterface.call(_options.jsName + ".PlayListLoaded",_playlist);
 		}
 		
 
@@ -705,15 +756,16 @@ package {
 					
 				}
 				catch(e:Error) {
-					p("EnterFrame Error" + e);
+					p("EnterFrame Error : " + e);
 				}
 			}
 		}
 		
 		private function onShowLyric(t){
-			if(!_options.lyricOn || t < _lyricStatus.thisTime) return;
+			if(_status.lrcReady === false || !_options.lyricOn || t < _lyricStatus.thisTime) return;
 			_lyricStatus = _showLyric.Find(t);
-			p(_lyricStatus.thisLyric);
+			ExternalInterface.call(_options.jsName + ".PlayShowLyric",_lyricStatus);
+			//p(_lyricStatus.prevLyric);
 		}
 		
 		/**
@@ -732,10 +784,12 @@ package {
 				_status.pausePosition = _status.length * pesent;
 				this.actionStop(_status.pausePosition);
 				this.actionPlay();
+				_status.jumpPlay = true;
 			}
 			else {
 				p("Nothing is Playing");
 			}
+			ExternalInterface.call(_options.jsName + ".PlayDropPointer",_status.pausePosition);
 
 		}
 
@@ -749,7 +803,7 @@ package {
 		private function ioErrorHandler(e:IOErrorEvent)	{
 			trace(e);
 			_status.isPlaying ? this.actionReset() : '';
-			ExternalInterface.call(_options.jsName + ".IoError");
+			ExternalInterface.call(_options.jsName + ".PlayIoError");
 			//ExternalInterface.call('console.log',"[%s]",e); //如果loading过程中退出，此处的参数传递在errorhandler中无法响应,所以不能直接用ExternalInterface.call
 		}
 		
@@ -844,9 +898,7 @@ package {
 		}
 		
 		private function initLyric(){
-			_melody.lyric = "[ti:明日天気に．．．]\n[ar:Remi]\n[00:01.59][00:01.20][00:01.21][00:01.22]明日天気に．．．\ndefw[00:05.11]fwew\n[00:05.22]nfeawfew[00:05.23]\n[00:01.20][00:05.87][00:05.88]作词：志倉千代丸 \n[00:08.67]作曲：志倉千代丸 \n[00:11.39]編曲：吉原かつみ \n[00:13.64]コーラス：中澤 里実\n[00:15.67]演唱：Remi\n[00:17.14]\n[00:29.06]一緒にいたんだよね？（I feel your love）  \n[00:38.42]気持ちも一つだよね？（dream come true it forever） \n[00:47.63]音もなくいつか\n[00:52.35]穏やかなページに \n[00:56.54]聞き分けのない\n[00:58.77]ノイズが溢れ出す \n[01:05.22]目の前に降り注ぐ\n[01:09.86]この雨は天気雨 \n[01:14.49]上がるように　おまじない \n[01:19.10]願いは叶うのかな？ \n[01:26.78]「サヨナラ」想い出の日\n[01:32.56]出逢いも、あの場所も \n[01:37.32]離れて行くんだね　もっともっと \n[01:45.17]最後のその言葉を　聞こえないフリして \n[01:55.61]失って気付いた　あなたの声\n[02:04.12]大きくなるよ \n[02:08.43]\n[02:31.47]例えば沈黙とか（I feel your love） \n[02:40.60]それさえ気まずいよね（dream come true it forever） \n[02:49.94]他の誰よりも\n[02:54.46]特別な存在 \n[02:58.80]その瞳には　誰を映しているの？ \n[03:07.45]あても無く待ちわびる\n[03:12.14]果たされぬ約束が \n[03:16.77]この胸を　揺らしてる \n[03:21.31]いつかは叶うのかな？ \n[03:29.10]天使がくれた季節\n[03:34.89]想い出の詰まった \n[03:39.44]いつかまた笑顔になれるのかな \n[03:47.53]記憶に手をふっても\n[03:53.32]離れてくれなくて \n[03:57.94]全ての繋がりが　切れたままで\n[04:06.38]乱れているよ\n[04:10.61]";
-			_showLyric = new Lyric(_melody.lyric);
-			_lyricStatus = _showLyric.Find(0);
+
 		}
 		
 		/**
@@ -865,11 +917,11 @@ package {
 			initTimer();
 			
 			//如果有参数，初始化参数
-			_param.link = "http://xhh4bw.bay.livefilestore.com/y1pf3AUkJcahV3yOst5P9N7F5L3zeue8PnEgz4K0ZYJSsEOElDPfJVJZn1jbj45peOvSs_xN-BgkDhVbCFNFusFXQ/ashita_no_tenki.mp3";
+			//_param.link = "http://xhh4bw.bay.livefilestore.com/y1pf3AUkJcahV3yOst5P9N7F5L3zeue8PnEgz4K0ZYJSsEOElDPfJVJZn1jbj45peOvSs_xN-BgkDhVbCFNFusFXQ/ashita_no_tenki.mp3";
 			//_param.list = "Demos/list.xml";
 			initParam();
 			
-			_options.lyricOn ? initLyric() : '';
+			//_options.lyricOn ? initLyric() : '';
 					
 			//对元素绑定事件
 			buttPlay.addEventListener(MouseEvent.CLICK,onPlay);			
@@ -883,11 +935,14 @@ package {
 			ExternalInterface.addCallback("avStop", actionStop);
 			ExternalInterface.addCallback("avPlay", actionPlay);
 			ExternalInterface.addCallback("avPause", actionPause);
+			ExternalInterface.addCallback("avNext", actionNext);
+			ExternalInterface.addCallback("avPrev", actionPrev);
 			ExternalInterface.addCallback("avReset", actionReset);
 			ExternalInterface.addCallback("avStatus", actionStatus);
-			ExternalInterface.addCallback("avMelody", actionSetMelody);
-			ExternalInterface.addCallback("avList", actionSetList);
-			ExternalInterface.addCallback("avLyric", actionSetLyric);
+			ExternalInterface.addCallback("avSetMelody", actionSetMelody);
+			ExternalInterface.addCallback("avSetList", actionSetList);
+			ExternalInterface.addCallback("avGetLyric", actionGetLyric);
+			ExternalInterface.addCallback("avSetLyric", actionSetLyric);
 		}
 
 		/**

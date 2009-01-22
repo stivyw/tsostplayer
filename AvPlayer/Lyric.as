@@ -9,6 +9,10 @@
 		 */
 		private var lrcBak:String;
 		
+		public var options = {
+			delay : 0
+		}
+		
 		/**
 		 * 时间轴
 		 * @access public
@@ -61,16 +65,19 @@
 		 * 根据时间找到该行歌词的位置和具体信息
 		 * @param  t:Number
 		 * @return false or Object
-		 * @access private
+		 * @access public
 		 */
 		public function Find(t:Number) {
 			var index = 0;
+			//比时间轴第一个还小，索引在第一个
 			if(t < this.timeLine[0]) {
-				
+				index = 0;
 			}
+			//比最后一个还大，报错
 			else if(t > this.timeLine[this.timeLine.length - 1]) {
 				index = -1;
 			}
+			//循环查找
 			else {
 				while (t > this.timeLine[index]) {
 					index++;
@@ -120,6 +127,12 @@
 			}
 		}
 		
+		public function SetOptions(opt:Object){
+			for(var i in opt) {
+				this.options[i] = opt[i];
+			}
+		}
+		
 		/**
 		 * 将单行歌词分解为形如
 			lyric : 明日天気に．．．
@@ -147,11 +160,11 @@
 				//所有时间入栈
 				for(var i = 1; i < spl.length - 1; i++) {
 					var time = parseTime(spl[i]);
-					if(time) {
+					if(time >= 0  && typeof(time) == 'number') {
 						
 						lrcUnit.timeLine.push(time);
 						
-						this.lrcObj.push({t:time,l:spl[spl.length - 1]});
+						this.lrcObj.push({"t":time,"l":spl[spl.length - 1]});
 						//索引用
 						this.timeLine.push(time);
 						
@@ -196,7 +209,7 @@
 						t += parseInt(l[1], 10) * 1;
 					}
 				}
-				return t;
+				return this.options.delay != 0 ? (t + this.options.delay > 0 ? t + this.options.delay : 0) : t;
 			} catch (e) {
 				return false;
 			}
@@ -235,8 +248,8 @@
 		}
 
 
-		public function Lyric(lrc) {
-			this.Parse(lrc);
+		public function Lyric(lrc:String = "") {
+			if(lrc) this.Parse(lrc);
 		}
 		
 		//去左右空格;
