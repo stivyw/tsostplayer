@@ -9,7 +9,9 @@
 
 ===Quick Start===
 
-Insert AvPlayer into your page with this codes : 
+=====HTML Basic=====
+
+Insert AvPlayer into your page with html codes : 
 ----
 {{{
 <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="240" height="20">
