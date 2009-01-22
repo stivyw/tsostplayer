@@ -9,7 +9,7 @@
 
 ===Quick Start===
 
-=====HTML Basic=====
+====HTML Basic====
 
 Insert AvPlayer into your page with html codes : 
 ----
@@ -27,4 +27,16 @@ Insert AvPlayer into your page with html codes :
 }}}
 
 * View [http://allo.ave7.net/lab/avplayer/Demos/player_basic.html this Demo] *
+----
+
+====Javascript Basic====
+Insert AvPlayer with 1 line Javascript code : 
+----
+{{{
+<script type="text/javascript">
+avplayer.write("http://mediaplayer.yahoo.com/example1.mp3");
+</script>
+}}}
+
+* View [http://allo.ave7.net/lab/avplayer/Demos/player_js_write.html this Demo] *
 ----
