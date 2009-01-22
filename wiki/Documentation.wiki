@@ -1,0 +1,7 @@
+===AvPlayer Documentation===
+
+  * AvPlayer Guides 
+  * APIs
+    # Flash Vars
+    # Flash API
+    # Javascript API
