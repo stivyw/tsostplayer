@@ -16,6 +16,7 @@ package {
 	import flash.display.*;
 	import flash.errors.*;
 	import flash.utils.ByteArray;
+	import flash.utils.Timer;
 
 	//import flash.net.URLRequest;
 	import flash.net.*;
@@ -60,6 +61,7 @@ package {
 			jumpPlay:false, //跳转播放
 			listReady:false, //播放列表已经设置完毕
 			lrcReady:false, //歌词已经正确解析
+			jsReady : false,
 			lyric : {}
 		}
 		
@@ -150,7 +152,6 @@ package {
 		private var _timerText:TextField = new TextField();
 		//歌词相关
 		private var _showLyric;
-		private var _lyricStatus;
 		//进度条
 		public var _progressBar;
 		
@@ -434,9 +435,8 @@ package {
 				_showLyric.SetOptions({delay:_options.delay});
 			}
 			_showLyric.Parse(_melody.lyric);
-			_lyricStatus = _showLyric.Find(0);
+			_status.lyric = _showLyric.Find(0);
 			
-			_status.lyric = _lyricStatus;
 			_status.lrcReady = true;
 		}
 		
@@ -762,10 +762,9 @@ package {
 		}
 		
 		private function onShowLyric(t){
-			if(_status.lrcReady === false || !_options.lyricOn || t < _lyricStatus.thisTime) return;
-			_lyricStatus = _showLyric.Find(t);
-			ExternalInterface.call(_options.jsName + ".PlayShowLyric",_lyricStatus);
-			//p(_lyricStatus.prevLyric);
+			if(_status.lrcReady === false || !_options.lyricOn || t < _status.lyric.thisTime) return;
+			_status.lyric = _showLyric.Find(t);
+			ExternalInterface.call(_options.jsName + ".PlayShowLyric",_status.lyric);
 		}
 		
 		/**
@@ -954,8 +953,44 @@ package {
 		 */
 		public function AvPlayer() {
 			initPlayer();
+			IsReady();
+		}
+
+		private function IsReady(){
+			if (ExternalInterface.available){
+				try {
+					var containerReady:Boolean = isContainerReady();
+					if (containerReady){
+						ExternalInterface.call(_options.jsName + ".ready.SetReady");
+					}
+					else{
+						var readyTimer:Timer = new Timer(100);
+						readyTimer.addEventListener(TimerEvent.TIMER,readyTimerHandler);
+						readyTimer.start();
+					}
+				}
+				catch(e) {
+					p(e)
+				}
+			}
+			else {
+				p("External interface is not available for this container.");
+			}
 		}
 		
+		private function isContainerReady():Boolean{
+			_status.jsReady = ExternalInterface.call(_options.jsName + ".ready.getready");
+			//p("call GetReady : " +  _status.jsReady);
+			return _status.jsReady;
+		}
+		
+		private function readyTimerHandler(event:TimerEvent){
+			if (isContainerReady()){
+				Timer(event.target).stop();
+				//p("Timer Stoped");
+			}
+		}
+
 		/**
 		 * 复制一个对象而不是引用
 		 *

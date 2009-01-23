@@ -1,6 +1,6 @@
 <!--
 /**
- * The AVPlayer Javascript Interface
+ * The AvPlayer Javascript Interface Core
  *
  *
  * @author     AlloVince <allo.vince@gmail.com>
@@ -17,6 +17,15 @@ window = this,
 undefined ,
 
 isIE = (navigator.userAgent.match(/MSIE/i)) ,
+
+_attachEvent = function(evt, callback){
+	if (window.addEventListener) {
+		window.addEventListener(evt, callback, false);
+	}
+	else if (window.attachEvent) {
+		window.attachEvent("on" + evt, callback);
+	}
+},
 
 type = function (obj) {
 	if (obj === null) {
@@ -37,7 +46,7 @@ debug = function (m,level){
 			if(typeof(m[i]) == 'object') {
 				console.log("Js debug : [%s]",s);
 				s = '';
-				p(m[i],level + 1);
+				debug(m[i],level + 1);
 			}
 			else {
 				s = i + ' : ' + m[i];
@@ -61,7 +70,9 @@ debug = function (m,level){
 AvPlayer = window.AvPlayer = {
 	
 	info: {
-		loaded : false,
+		ready : false,
+		jsready : false,
+		swfready : false,
 		version : '0.10'
 	},
 
@@ -80,13 +91,9 @@ AvPlayer = window.AvPlayer = {
 
 	init : function(dir){
 		AvPlayer.option.dir = dir || AvPlayer.option.dir;
-		if (window.addEventListener) {
-			window.addEventListener('load',AvPlayer.creat,false);
-			//window.addEventListener('unload',AvPlayer.destroy,false);
-		} else if (window.attachEvent) {
-			window.attachEvent('onload',AvPlayer.creat);
-			//window.attachEvent('onunload',AvPlayer.destroy);
-		};
+		//Domready不可用，只能绑定在onload事件上
+		_attachEvent('load',AvPlayer.creat);
+		//AvPlayer.domready(AvPlayer.creat);
 	},
 
 	setup : function(op){
@@ -96,7 +103,7 @@ AvPlayer = window.AvPlayer = {
 	},
 
 	creat : function(){
-		var htmlEmbed = '<embed name="'+AvPlayer.option.id+'" id="'+AvPlayer.option.id+'" src="'+AvPlayer.option.dir+'avplayer.swf" width="100%" height="100%"></embed>';
+		var htmlEmbed = '<embed name="'+AvPlayer.option.id+'" id="'+AvPlayer.option.id+'" src="'+AvPlayer.option.dir+'avplayer.swf" allowScriptAccess="always" width="100%" height="100%"></embed>';
 		var htmlObject = '<object id="'+AvPlayer.option.id+'" data="'+AvPlayer.option.dir+'avplayer.swf" type="application/x-shockwave-flash" width="100%" height="100%"><param name="movie" value="'+AvPlayer.option.dir+'avplayer.swf" /></object>';
 		var html = !isIE ? htmlEmbed : htmlObject;
 		/*
@@ -117,8 +124,8 @@ AvPlayer = window.AvPlayer = {
 			//head.appendChild(css);
 			AvPlayer.getDocument.appendChild(AvPlayer.container);
 			AvPlayer.container.innerHTML = html;
-			AvPlayer.info.loaded = true;
 			AvPlayer.player = document.getElementById(AvPlayer.option.id);
+			AvPlayer.info.jsready = true;
 		}
 		catch(e){
 			debug(e);
@@ -126,77 +133,150 @@ AvPlayer = window.AvPlayer = {
 	},
 
 	play : function(url){
-		if(AvPlayer.info.loaded === false)
+		if(AvPlayer.info.ready === false)
 			return debug('Player is not Ready');
 		url = url || null;
-		AvPlayer.player.avPlay(url);	
+		AvPlayer.player.avPlay(url);
+		return this;
 	},
 
 	stop : function(time){
-		if(AvPlayer.info.loaded === false)
+		if(AvPlayer.info.ready === false)
 			return debug('Player is not Ready');
 		//确保入口参数正确
 		time = type(time) == 'Number' ? time : 0;
 		AvPlayer.player.avStop(time);
+		return this;
 	},
 
 	pause : function(){
-		if(AvPlayer.info.loaded === false)
+		if(AvPlayer.info.ready === false)
 			return debug('Player is not Ready');
 		AvPlayer.player.avPause();
+		return this;
 	},
 	
 	next : function(){
-		if(AvPlayer.info.loaded === false)
+		if(AvPlayer.info.ready === false)
 			return debug('Player is not Ready');
 		AvPlayer.player.avNext();
+		return this;
 	},
 	
 	prev : function(){
-		if(AvPlayer.info.loaded === false)
+		if(AvPlayer.info.ready === false)
 			return debug('Player is not Ready');
 		AvPlayer.player.avPrev();
+		return this;
 	},
 	
 	reset : function(){
-		if(AvPlayer.info.loaded === false)
+		if(AvPlayer.info.ready === false)
 			return debug('Player is not Ready');
 		AvPlayer.player.avReset();
+		return this;
 	},
 
 	status : function(){
 		return AvPlayer.player.avStatus();
+		return this;
 	},
 	
 	melody : function(){
-		if(AvPlayer.info.loaded === false)
+		if(AvPlayer.info.ready === false)
 			return debug('Player is not Ready');
 		AvPlayer.player.avSetMelody();
+		return this;
 	},
 
 	list : function(url){
-		if(AvPlayer.info.loaded === false)
+		if(AvPlayer.info.ready === false)
 			return debug('Player is not Ready');
 		if(url === undefined)
 			return AvPlayer.player.avGetList()
 		AvPlayer.player.avSetList(url);
+		return this;
 	},
 	
 	lyric : function(lrc){
-		if(AvPlayer.info.loaded === false)
+		if(AvPlayer.info.ready === false)
 			return debug('Player is not Ready');
 		if(lrc === undefined)
 			return AvPlayer.player.avGetLyric()
 		AvPlayer.player.avSetLyric(lrc);
+		return this;
 	},
-	
-	PlayComplete : function(){
-				   
-	},
-	
-	PlayShowLyric : function(l) {
-		//p(l.prevLyric);
+
+	ready : function(fn){
+		if (AvPlayer.info.ready === true) return fn();
+		
+		if (AvPlayer.ready.timer) {
+			AvPlayer.ready.funcs.push(fn);
+		}
+		else {
+			AvPlayer.ready.funcs = [fn];
+			AvPlayer.ready.timer = window.setInterval("AvPlayer.ready.isready()",100);
+
+		}
+
+		AvPlayer.ready.getready = function() {
+			return AvPlayer.info.jsready;
+		}
+
+		AvPlayer.ready.SetReady = function() {
+			//swf读取完毕后不能立即响应，这里必须设置延迟
+			setTimeout(function(){
+				AvPlayer.info.swfready = true;
+			},500);
+		}
+
+		AvPlayer.ready.isready = function(){
+			if (AvPlayer.info.jsready === false || AvPlayer.info.swfready === false) return false;
+			if (AvPlayer.info.jsready === true && AvPlayer.info.swfready === true) {
+				AvPlayer.ready.clear(AvPlayer.ready.timer);
+				debug("all ready");
+				AvPlayer.info.ready = true;
+				for(var i in AvPlayer.ready.funcs) {
+					AvPlayer.ready.funcs[i]();
+				}
+				AvPlayer.ready.timer = null;
+				AvPlayer.ready.funcs = null;
+			}
+		}
+		AvPlayer.ready.clear = function(timer) {
+			window.clearInterval(timer);
+		}
 	}
+
+/*	,
+	domready : function(fn){
+		if (AvPlayer.info.ready) return;
+		if (document.addEventListener){
+			document.addEventListener("DOMContentLoaded", function(){
+				document.removeEventListener( "DOMContentLoaded", arguments.callee, false );
+				fn();
+			}, false );
+		} else if ( document.attachEvent ) {
+			document.attachEvent("onreadystatechange", function(){
+				if (document.readyState === "complete" ) {
+					document.detachEvent( "onreadystatechange", arguments.callee );
+					fn();
+				}
+			});
+			if ( document.documentElement.doScroll && !window.frameElement ) (function(){
+				
+				try {
+					document.documentElement.doScroll("left");
+				} catch( error ) {
+					setTimeout( arguments.callee, 0 );
+					return;
+				}
+				fn();
+			})();
+		}
+		_attachEvent("load",fn);
+	}
+*/	
 
 
 };
@@ -205,10 +285,11 @@ AvPlayer = window.AvPlayer = {
 
 
 
-AvPlayer.init('../');
+
 
 
 function p(m,level){
+	
 	level == undefined ? 0 : level;
 	var type = typeof(m);
 	if(type == 'object') {
@@ -236,7 +317,4 @@ function p(m,level){
 		console.log("Js debug : [%s]",m);
 	}
 }
-
-
-
 -->
