@@ -75,16 +75,29 @@ var avp = new AvPlayer();
 </div>
 <script type="text/javascript" src="http://code.jquery.com/jquery-latest.pack.js"></script>
 <script type="text/javascript" src="../jquery-ui.js"></script>
+
 <script type="text/javascript" src="../avplayer.src.js"></script>
+<script type="text/javascript" src="../avplayerUI.src.js"></script>
 <script type="text/javascript">
 <!--
+	AvPlayer.init('../');
+	AvPlayer.ready(function(){
+		AvPlayer.play();
+	});
+	
 //var avp = new AvPlayer("../");
 $(document).ready(function(){
+
+	//AvPlayer.init('../');
+	//alert(typeof(AvPlayer.player));
 	$("a").click(function(){
-		alert(this.href);
+	
+		AvPlayer.lyric($(".lrc").html());
 		AvPlayer.play(this.href);
+		
 		return false;
 	});
+	
 });
 -->
 </script>

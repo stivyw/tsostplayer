@@ -1,6 +1,6 @@
 <!--
 /**
- * The AVPlayer Javascript Interface UI
+ * The AvPlayer Javascript Interface UI
  *
  *
  * @author     AlloVince <allo.vince@gmail.com>
@@ -8,9 +8,16 @@
  * @license    GNU General Public License v3
  * @link       http://code.google.com/p/tsostplayer/
  */
-(function(){
 
 
-})();
+
+AvPlayer.PlayComplete = function(){
+				   
+}
+	
+AvPlayer.PlayShowLyric = function(l) {
+	p(l.prevLyric);
+}
+ 
 
 -->
