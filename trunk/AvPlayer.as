@@ -953,9 +953,13 @@ package {
 		 */
 		public function AvPlayer() {
 			initPlayer();
+			loaderInfo.addEventListener(Event.COMPLETE, selfLoadComplete);
+		}
+		
+		private function selfLoadComplete(event:Event):void {
 			IsReady();
 		}
-
+		
 		private function IsReady(){
 			if (ExternalInterface.available){
 				try {

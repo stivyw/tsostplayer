@@ -73,6 +73,8 @@ AvPlayer = window.AvPlayer = {
 		ready : false,
 		jsready : false,
 		swfready : false,
+		onloadready : false,
+		setready : false,
 		version : '0.10'
 	},
 
@@ -91,9 +93,9 @@ AvPlayer = window.AvPlayer = {
 
 	init : function(dir){
 		AvPlayer.option.dir = dir || AvPlayer.option.dir;
-		//Domready不可用，只能绑定在onload事件上
-		_attachEvent('load',AvPlayer.creat);
-		//AvPlayer.domready(AvPlayer.creat);
+		//_attachEvent('load',AvPlayer.creat);
+		AvPlayer.domready(AvPlayer.creat);
+		_attachEvent('load',function(){AvPlayer.info.onloadready = true});
 	},
 
 	setup : function(op){
@@ -102,8 +104,9 @@ AvPlayer = window.AvPlayer = {
 		}
 	},
 
+
 	creat : function(){
-		var htmlEmbed = '<embed name="'+AvPlayer.option.id+'" id="'+AvPlayer.option.id+'" src="'+AvPlayer.option.dir+'avplayer.swf" allowScriptAccess="always" width="100%" height="100%"></embed>';
+		var htmlEmbed = '<embed id="'+AvPlayer.option.id+'" src="'+AvPlayer.option.dir+'avplayer.swf" allowScriptAccess="always" width="100%" height="100%"></embed>';
 		var htmlObject = '<object id="'+AvPlayer.option.id+'" data="'+AvPlayer.option.dir+'avplayer.swf" type="application/x-shockwave-flash" width="100%" height="100%"><param name="movie" value="'+AvPlayer.option.dir+'avplayer.swf" /></object>';
 		var html = !isIE ? htmlEmbed : htmlObject;
 		/*
@@ -134,7 +137,7 @@ AvPlayer = window.AvPlayer = {
 
 	play : function(url){
 		if(AvPlayer.info.ready === false)
-			return debug('Player is not Ready');
+			//return debug('Player is not Ready');
 		url = url || null;
 		AvPlayer.player.avPlay(url);
 		return this;
@@ -210,45 +213,30 @@ AvPlayer = window.AvPlayer = {
 	ready : function(fn){
 		if (AvPlayer.info.ready === true) return fn();
 		
-		if (AvPlayer.ready.timer) {
+		if (AvPlayer.ready.funcs) {
 			AvPlayer.ready.funcs.push(fn);
 		}
 		else {
 			AvPlayer.ready.funcs = [fn];
-			AvPlayer.ready.timer = window.setInterval("AvPlayer.ready.isready()",100);
-
 		}
 
 		AvPlayer.ready.getready = function() {
-			return AvPlayer.info.jsready;
+			return AvPlayer.info.jsready && AvPlayer.info.onloadready;
 		}
 
 		AvPlayer.ready.SetReady = function() {
-			//swf读取完毕后不能立即响应，这里必须设置延迟
-			setTimeout(function(){
-				AvPlayer.info.swfready = true;
-			},500);
-		}
-
-		AvPlayer.ready.isready = function(){
-			if (AvPlayer.info.jsready === false || AvPlayer.info.swfready === false) return false;
-			if (AvPlayer.info.jsready === true && AvPlayer.info.swfready === true) {
-				AvPlayer.ready.clear(AvPlayer.ready.timer);
-				debug("all ready");
-				AvPlayer.info.ready = true;
-				for(var i in AvPlayer.ready.funcs) {
-					AvPlayer.ready.funcs[i]();
-				}
-				AvPlayer.ready.timer = null;
-				AvPlayer.ready.funcs = null;
+			if(AvPlayer.info.setready === true) return;
+			AvPlayer.info.ready = true;
+			for(var i in AvPlayer.ready.funcs) {
+				AvPlayer.ready.funcs[i]();
 			}
-		}
-		AvPlayer.ready.clear = function(timer) {
-			window.clearInterval(timer);
+			AvPlayer.ready.funcs = null;
+			AvPlayer.info.setready = true;
+			
 		}
 	}
 
-/*	,
+	,
 	domready : function(fn){
 		if (AvPlayer.info.ready) return;
 		if (document.addEventListener){
@@ -276,8 +264,6 @@ AvPlayer = window.AvPlayer = {
 		}
 		_attachEvent("load",fn);
 	}
-*/	
-
 
 };
 
