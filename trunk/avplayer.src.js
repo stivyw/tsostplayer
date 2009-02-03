@@ -225,12 +225,13 @@ AvPlayer = window.AvPlayer = {
 		}
 
 		AvPlayer.ready.SetReady = function() {
-			if(AvPlayer.info.setready === true) return;
-			AvPlayer.info.ready = true;
-			for(var i in AvPlayer.ready.funcs) {
-				AvPlayer.ready.funcs[i]();
+			if(AvPlayer.info.setready === true) {
+				AvPlayer.info.ready = true;
+				for(var i in AvPlayer.ready.funcs) {
+					AvPlayer.ready.funcs[i]();
+				}
+				AvPlayer.ready.funcs = null;
 			}
-			AvPlayer.ready.funcs = null;
 			AvPlayer.info.setready = true;
 			
 		}
